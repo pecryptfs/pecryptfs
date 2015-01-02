@@ -39,7 +39,7 @@ def decrypt_filename(auth_token, filename):
 
         assert data[0] == 0x46  # TAG70
         pkg_len = data[1]  # FIXME: this is really a variable length encoding
-        blkfilename_len = pkg_len - 8 - 1
+        block_aligned_filename_size = pkg_len - 8 - 1
 
         signature = data[2:10]
         if b2h_short(signature) != auth_token.signature:
@@ -48,7 +48,7 @@ def decrypt_filename(auth_token, filename):
         i = 11
 
         cipher = AES.new(auth_token.session_key[0:16], AES.MODE_ECB, IV=b"\x00" * 16)
-        text = data[i:i+blkfilename_len]
+        text = data[i:i + block_aligned_filename_size]
         res = cipher.decrypt(text)
         return res.split(b'\0', 1)[1]
 

@@ -29,6 +29,7 @@ def main():
     parser = argparse.ArgumentParser(description="eCryptfs file decrypter")
     parser.add_argument('files', metavar='FILE', type=str, nargs='+', help='Files to extract')
     parser.add_argument('-p', '--password', type=str, help='Password to use for decryption, prompt when none given')
+    parser.add_argument('-s', '--salt', type=str, help='Salt to use for decryption', default="0011223344556677")
     parser.add_argument('-i', '--info', action="store_true", help="Print info about the file")
     args = parser.parse_args()
 
@@ -36,6 +37,10 @@ def main():
         password = getpass.getpass().encode()
     else:
         password = args.password.encode()
+
+    salt = bytearray.fromhex(args.salt)
+
+    auth_token = pecryptfs.AuthToken(password, salt)
 
     for filename in args.files:
         if args.info:
@@ -46,7 +51,7 @@ def main():
                 print("            ", b2h(efin.session_key[48:48+16]))
                 print("signature:", efin.signature)
         else:
-            with pecryptfs.File.from_file(filename, password) as efin:
+            with pecryptfs.File.from_file(filename, auth_token) as efin:
                 sys.stdout.buffer.write(efin.read())
 
 

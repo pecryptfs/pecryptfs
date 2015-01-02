@@ -26,19 +26,14 @@ class File:
     MAGIC_ECRYPTFS_MARKER = 0x3c81b7f5
 
     @staticmethod
-    def from_file(filename, password):
+    def from_file(filename, auth_token):
         fin = open(filename, "rb")
-        efs = File(fin, password)
+        efs = File(fin, auth_token)
         return efs
 
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        self.close()
-
-    def __init__(self, fin, password):
+    def __init__(self, fin, auth_token):
         self.fin = fin
+        self.auth_token = auth_token
 
         header = fin.read(8192)
         self.file_size = struct.unpack(">q", header[0:8])[0]
@@ -59,17 +54,14 @@ class File:
         if self.marker1 != self.marker2 ^ File.MAGIC_ECRYPTFS_MARKER:
             raise Exception("marker missmatch, not a eCryptfs encrypted file")
 
-        # calculate keys
-        self.session_key = self.salt + password
-        for _ in range(65536):
-            self.session_key = hashlib.sha512(self.session_key).digest()
+        if self.salt != self.auth_token.salt:
+            raise Exception("salt of file and auth_token missmatch")
 
-        cipher = AES.new(self.session_key[0:16], AES.MODE_CBC, IV=b"\x00" * 16)
+        # calculate keys
+        cipher = AES.new(self.auth_token.session_key[0:16], AES.MODE_CBC, IV=b"\x00" * 16)
         self.key = cipher.decrypt(self.encrypted_key)
 
         self.root_iv = hashlib.md5(self.key).digest()
-
-        self.signature = b2h_short(hashlib.sha512(self.session_key).digest()[0:8])
 
     def close(self):
         self.fin.close()
@@ -99,6 +91,12 @@ class File:
             page += 1
 
         return result
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
 
 
 # EOF #
