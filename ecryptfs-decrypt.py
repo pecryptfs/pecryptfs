@@ -28,7 +28,7 @@ from pecryptfs import b2h
 def main():
     parser = argparse.ArgumentParser(description="eCryptfs file decrypter")
     parser.add_argument('files', metavar='FILE', type=str, nargs='+', help='Files to extract')
-    parser.add_argument('-p', '--password', type=str, help='Password to use for decryption, prompt when none given')
+    parser.add_argument('-p', '--password', type=str, help='Password to use for decryption, prompt when none given. This is the one used in ".ecryptfs/wrapped-passphrase", which can be recovered with "ecryptfs-unwrap-passphrase .ecryptfs/wrapped-passphrase"')
     parser.add_argument('-s', '--salt', type=str, help='Salt to use for decryption', default="0011223344556677")
     parser.add_argument('-i', '--info', action="store_true", help="Print info about the file")
     args = parser.parse_args()
