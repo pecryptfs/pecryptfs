@@ -44,7 +44,7 @@ def generate_encrypted_file(cipher, key_bytes, password, salt):
         fout.write("Hello World\n")
 
     # unmount the encrypted diretorys
-    subprocess.call(["sudo", "umount", front_directory])
+    subprocess.check_call(["sudo", "umount", front_directory])
 
     # copy the encrypted file
     with open(os.path.join(back_directory, "TestFile"), "rb") as fin:
