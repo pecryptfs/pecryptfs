@@ -14,20 +14,37 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+SOURCES := $(wildcard \
+  pecryptfs/*.py \
+  tests/*.py)
 
-sources = Glob("*.py", strings=True) + Glob("*/*.py", strings=True)
+all: flake test # autopep
 
-flake_check = Command(None, sources, 
-                      "python3 -m flake8.run --max-line-length=120 $SOURCES")
+autopep:
+	autopep8  --max-line=120  --in-place $(SOURCES)
 
-AlwaysBuild(Alias("test", [], "python3 -m unittest discover"))
+test:
+	python3 -m unittest discover -s tests/
 
-for i in sources:
-    Alias("pylint", Command(i + ".pylint", i, "epylint $SOURCE"))
+flake:
+	flake8 --max-line-length=120 $(SOURCES)
 
-Default(flake_check)
+PYLINT_TARGETS := $(addprefix .pylint/, $(SOURCES))
 
-Alias("all", [flake_check, "pylint", "test"])
+$(PYLINT_TARGETS): .pylint/%.py: %.py
+	mkdir -p $(dir $@)
+	PYTHONPATH=. epylint3 $< --rcfile=.pylintrc --max-line-length=120
+	touch $@
+
+pylint: $(PYLINT_TARGETS)
+
+clean:
+	rm -vrf .pylint/
+
+install:
+	sudo -H pip3 install --force-reinstall --ignore-installed .
+
+.PHONY: autopep test flake pylint clean
 
 
 # EOF #
