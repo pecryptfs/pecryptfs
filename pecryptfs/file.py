@@ -45,9 +45,9 @@ class File:
         self.rfc2440 = header[24:8192]
 
         # rfc2440 Tag3/Tag11
-        self.salt = header[32:32+8]
-        self.hash_iterations = header[32+8]
-        self.encrypted_key = header[41:41+16]
+        self.salt = header[32:32 + 8]
+        self.hash_iterations = header[32 + 8]
+        self.encrypted_key = header[41:41 + 16]
 
         # check that the file is a proper eCryptfs file
         if self.marker1 != self.marker2 ^ File.MAGIC_ECRYPTFS_MARKER:
