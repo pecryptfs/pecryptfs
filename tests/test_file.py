@@ -18,7 +18,6 @@
 
 
 import unittest
-from pecryptfs import AuthToken, decrypt_filename
 
 
 class TestFilename(unittest.TestCase):
@@ -32,7 +31,6 @@ class TestFilename(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
 
 
 # EOF #

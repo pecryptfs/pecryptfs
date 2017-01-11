@@ -18,7 +18,6 @@
 import hashlib
 import struct
 from Crypto.Cipher import AES
-from pecryptfs import b2h_short
 
 
 class File:
