@@ -57,11 +57,12 @@ def generate_encrypted_file(cipher, key_bytes, password, salt):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="eCryptfs ls")
+    parser = argparse.ArgumentParser(description="eCryptfs Encrypted File Generator")
     parser.add_argument('files', metavar='FILE', type=str, nargs='?', help='Filenames to decrypt')
     parser.add_argument('-p', '--password', type=str, default="Test",
                         help='Password to use for decryption, prompt when none given')
-    parser.add_argument('-s', '--salt', type=str, help='Salt to use for decryption', default="0011223344556677")
+    parser.add_argument('-s', '--salt', type=str, default="0011223344556677",
+                        help='Salt to use for decryption')
     parser.add_argument('-o', '--output', type=str, required=True, help='Output directory')
 
     args = parser.parse_args()
