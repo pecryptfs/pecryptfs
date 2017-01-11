@@ -27,3 +27,4 @@ Links
 * https://www.kernel.org/doc/Documentation/filesystems/ecryptfs.txt
 * https://defuse.ca/audits/ecryptfs.htm
 * https://lkml.org/lkml/2006/3/24/318
+* http://landley.net/kdocs/ols/2012/ols2012-wang.pdf
