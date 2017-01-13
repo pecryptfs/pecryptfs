@@ -22,8 +22,6 @@ from Crypto.Cipher import AES
 
 class File:
 
-    MAGIC_ECRYPTFS_MARKER = 0x3c81b7f5
-
     @staticmethod
     def from_file(filename, auth_token):
         fin = open(filename, "rb")

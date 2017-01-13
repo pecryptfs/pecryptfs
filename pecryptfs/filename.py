@@ -20,6 +20,9 @@ import binascii
 from Crypto.Cipher import AES
 
 from pecryptfs import b2h_short
+from pecryptfs.define import (
+    ECRYPTFS_TAG_70_PACKET_TYPE,
+    ECRYPTFS_FNEK_ENCRYPTED_FILENAME_PREFIX)
 
 
 portable_filename_chars = b"-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
@@ -29,17 +32,15 @@ for i, c in enumerate(portable_filename_chars):
     filename_rev_map[c] = i
 filename_rev_map = bytes(filename_rev_map)
 
-fnek_marker = b"ECRYPTFS_FNEK_ENCRYPTED."
-
 
 def decrypt_filename(auth_token, enc_filename):
-    if not enc_filename.startswith(fnek_marker):
+    if not enc_filename.startswith(ECRYPTFS_FNEK_ENCRYPTED_FILENAME_PREFIX):
         # assume unencrypted filename
         return enc_filename
     else:
-        data = convert_6bit_to_8bit(enc_filename[len(fnek_marker):])
+        data = convert_6bit_to_8bit(enc_filename[len(ECRYPTFS_FNEK_ENCRYPTED_FILENAME_PREFIX):])
 
-        assert data[0] == 0x46  # TAG70
+        assert data[0] == ECRYPTFS_TAG_70_PACKET_TYPE
         pkg_len = data[1]  # FIXME: this is really a variable length encoding
         block_aligned_filename_size = pkg_len - 8 - 1
 
@@ -72,7 +73,7 @@ def encrypt_filename(auth_token, filename, junk=None):
 
     return (b"ECRYPTFS_FNEK_ENCRYPTED." +
             convert_8bit_to_6bit(
-                bytes([0x46, len(padded_filename) + 9]) +
+                bytes([ECRYPTFS_TAG_70_PACKET_TYPE, len(padded_filename) + 9]) +
                 binascii.unhexlify(auth_token.signature) +
                 b"\x07" +
                 res +
