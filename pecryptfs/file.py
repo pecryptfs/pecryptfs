@@ -19,6 +19,8 @@ import hashlib
 import struct
 from Crypto.Cipher import AES
 
+from pecryptfs.define import MAGIC_ECRYPTFS_MARKER
+
 
 class File:
 
@@ -48,7 +50,7 @@ class File:
         self.encrypted_key = header[41:41 + 16]
 
         # check that the file is a proper eCryptfs file
-        if self.marker1 != self.marker2 ^ File.MAGIC_ECRYPTFS_MARKER:
+        if self.marker1 != self.marker2 ^ MAGIC_ECRYPTFS_MARKER:
             raise Exception("marker missmatch, not a eCryptfs encrypted file")
 
         if self.salt != self.auth_token.salt:

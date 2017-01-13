@@ -24,12 +24,17 @@ from pecryptfs.define import (
     ECRYPTFS_FNEK_ENCRYPTED_FILENAME_PREFIX)
 
 
-portable_filename_chars = b"-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+PORTABLE_FILENAME_CHARS = b"-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 
-filename_rev_map = bytearray(b"\x00" * 256)
-for i, c in enumerate(portable_filename_chars):
-    filename_rev_map[c] = i
-filename_rev_map = bytes(filename_rev_map)
+
+def build_filename_rev_map():
+    rev_map = bytearray(b"\x00" * 256)
+    for i, c in enumerate(PORTABLE_FILENAME_CHARS):
+        rev_map[c] = i
+    return bytes(rev_map)
+
+
+FILENAME_REV_MAP = build_filename_rev_map()
 
 
 def decrypt_filename(auth_token, enc_filename):
@@ -52,7 +57,7 @@ def decrypt_filename(auth_token, enc_filename):
         cipher = AES.new(auth_token.session_key[0:16], AES.MODE_ECB, IV=b"\x00" * 16)
         text = data[i:i + block_aligned_filename_size]
         res = cipher.decrypt(text)
-        junk, filename = res.split(b'\0', 1)
+        _, filename = res.split(b'\0', 1)
         return filename.rstrip(b'\x00')
 
 
@@ -84,7 +89,7 @@ def convert_6bit_to_8bit(data_6bit):
     result = []
     bit_offset = 0
     for c in data_6bit:
-        src_byte = filename_rev_map[c]
+        src_byte = FILENAME_REV_MAP[c]
 
         if bit_offset == 0:
             result.append((src_byte << 2) & 0xff)
@@ -126,7 +131,7 @@ def convert_8bit_to_6bit(data_8bit):
             result.append((c & 0b00111111))
             bit_offset = 0
 
-    result = [portable_filename_chars[c] for c in result]
+    result = [PORTABLE_FILENAME_CHARS[c] for c in result]
 
     return bytes(result)
 

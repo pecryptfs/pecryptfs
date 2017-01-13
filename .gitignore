@@ -1,4 +1,3 @@
 *.pyc
 *~
-/.sconsign.dblite
-/kernel/
+/.pylint/

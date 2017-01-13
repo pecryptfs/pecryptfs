@@ -78,6 +78,8 @@ def main():
                 continue
             new_filename = decrypt_filename(auth_token, filename)
         else:
+            # FIXME: toggling per filename is a bad idea, should be
+            # either all decrypt or all encrypt
             if filename.startswith(ECRYPTFS_FNEK_ENCRYPTED_FILENAME_PREFIX):
                 new_filename = decrypt_filename(auth_token, filename)
             else:
