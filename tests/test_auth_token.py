@@ -30,7 +30,7 @@ class TestAuthToken(unittest.TestCase):
         pass
 
     def test_signature(self):
-        self.assertEqual(self.auth_token.signature, "326bd307c877876f")
+        self.assertEqual(self.auth_token.signature, b"326bd307c877876f")
 
     def test_session_key(self):
         self.assertEqual(self.auth_token.session_key,

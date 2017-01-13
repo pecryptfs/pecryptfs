@@ -15,13 +15,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from .util import h2b, b2h, b2h_short
+from .util import h2b, b2h
 from .auth_token import AuthToken
 from .filename import encrypt_filename, decrypt_filename
 from .file import File
 
 
-__all__ = ["h2b", "b2h", "b2h_short",
+__all__ = ["h2b", "b2h",
            "AuthToken", "File",
            "encrypt_filename",
            "decrypt_filename"]

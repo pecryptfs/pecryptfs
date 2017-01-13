@@ -16,8 +16,7 @@
 
 
 import hashlib
-
-from pecryptfs import b2h_short
+import binascii
 
 
 class AuthToken:
@@ -30,7 +29,7 @@ class AuthToken:
         for _ in range(hash_iterations):
             self.session_key = hashlib.sha512(self.session_key).digest()
 
-        self.signature = b2h_short(hashlib.sha512(self.session_key).digest()[0:8])
+        self.signature = binascii.hexlify(hashlib.sha512(self.session_key).digest()[0:8])
 
 
 # EOF #

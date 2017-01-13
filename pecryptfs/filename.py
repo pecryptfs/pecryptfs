@@ -19,7 +19,6 @@ import random
 import binascii
 from Crypto.Cipher import AES
 
-from pecryptfs import b2h_short
 from pecryptfs.define import (
     ECRYPTFS_TAG_70_PACKET_TYPE,
     ECRYPTFS_FNEK_ENCRYPTED_FILENAME_PREFIX)
@@ -45,7 +44,7 @@ def decrypt_filename(auth_token, enc_filename):
         block_aligned_filename_size = pkg_len - 8 - 1
 
         signature = data[2:10]
-        if b2h_short(signature) != auth_token.signature:
+        if binascii.hexlify(signature) != auth_token.signature:
             raise Exception("signature mismatch, key not suited for filename")
 
         i = 11

@@ -23,8 +23,4 @@ def b2h(data):
     return ".".join([("0x%02x" % c) for c in data])
 
 
-def b2h_short(data):
-    return "".join([("%02x" % c) for c in data])
-
-
 # EOF #
