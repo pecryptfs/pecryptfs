@@ -20,19 +20,22 @@
 import argparse
 import os
 import subprocess
+import tempfile
 
 
 def generate_encrypted_file(cipher, key_bytes, password, salt):
-    back_directory = "/tmp/back"
-    front_directory = "/tmp/front"
+    back_directory = tempfile.mkdtemp("_pecryptfs_back")
+    front_directory = tempfile.mkdtemp("_pecryptfs_front")
 
     # mount the encrypted directory
     cmd = ["sudo", "mount",
            "-t", "ecryptfs",
            "-o", ",".join(["key=passphrase:passwd={}".format(password),
+                           "passphrase_salt={}".format(salt),
                            "ecryptfs_enable_filename_crypto=no",
                            "ecryptfs_passthrough=no",
                            "ecryptfs_unlink_sigs",
+                           "no_sig_cache",
                            "ecryptfs_cipher={}".format(cipher),
                            "ecryptfs_key_bytes={}".format(key_bytes)]),
            back_directory,
@@ -52,6 +55,9 @@ def generate_encrypted_file(cipher, key_bytes, password, salt):
 
     # FIXME: Why is the file not overwritten when it's not unlinked?!
     os.unlink(os.path.join(back_directory, "TestFile"))
+
+    os.rmdir(back_directory)
+    os.rmdir(front_directory)
 
     return data
 
