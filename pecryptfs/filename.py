@@ -30,12 +30,12 @@ filename_rev_map = bytes(filename_rev_map)
 fnek_marker = b"ECRYPTFS_FNEK_ENCRYPTED."
 
 
-def decrypt_filename(auth_token, filename):
-    if not filename.startswith(fnek_marker):
+def decrypt_filename(auth_token, enc_filename):
+    if not enc_filename.startswith(fnek_marker):
         # assume unencrypted filename
-        return filename
+        return enc_filename
     else:
-        data = convert_6bit_to_8bit(filename[len(fnek_marker):])
+        data = convert_6bit_to_8bit(enc_filename[len(fnek_marker):])
 
         assert data[0] == 0x46  # TAG70
         pkg_len = data[1]  # FIXME: this is really a variable length encoding
@@ -50,7 +50,10 @@ def decrypt_filename(auth_token, filename):
         cipher = AES.new(auth_token.session_key[0:16], AES.MODE_ECB, IV=b"\x00" * 16)
         text = data[i:i + block_aligned_filename_size]
         res = cipher.decrypt(text)
-        return res.split(b'\0', 1)[1]
+        junk, filename = res.split(b'\0', 1)
+        return filename.rstrip(b'\x00')
+
+
 
 
 def convert_6bit_to_8bit(data_6bit):
