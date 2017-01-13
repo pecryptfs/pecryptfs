@@ -34,9 +34,9 @@ def main():
     args = parser.parse_args()
 
     if args.password is None:
-        password = getpass.getpass().encode()
+        password = os.fsencode(getpass.getpass())
     else:
-        password = args.password.encode()
+        password = os.fsencode(args.password)
 
     salt = bytearray.fromhex(args.salt)
 
@@ -45,12 +45,12 @@ def main():
     if args.directory:
         for directory in args.files:
             for filename in os.listdir(directory):
-                real_filename = pecryptfs.decrypt_filename(auth_token, filename.encode())
-                sys.stdout.buffer.write(real_filename + b"\n")
+                real_filename = pecryptfs.decrypt_filename(auth_token, os.fsencode(filename))
+                print(os.fsdecode(real_filename))
     else:
         for filename in args.files:
-            real_filename = pecryptfs.decrypt_filename(auth_token, filename.encode())
-            sys.stdout.buffer.write(real_filename + b"\n")
+            real_filename = pecryptfs.decrypt_filename(auth_token, os.fsencode(filename))
+            print(os.fsdecode(real_filename))
 
 
 # EOF #

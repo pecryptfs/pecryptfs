@@ -17,9 +17,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import sys
 import argparse
 import getpass
+import os
+import sys
 
 import pecryptfs
 from pecryptfs import b2h
@@ -38,9 +39,9 @@ def main():
     args = parser.parse_args()
 
     if args.password is None:
-        password = getpass.getpass().encode()
+        password = os.fsencode(getpass.getpass())
     else:
-        password = args.password.encode()
+        password = os.fsencode(args.password)
 
     salt = bytearray.fromhex(args.salt)
 
@@ -56,7 +57,7 @@ def main():
                 print("signature:", efin.signature)
         else:
             with pecryptfs.File.from_file(filename, auth_token) as efin:
-                sys.stdout.buffer.write(efin.read())
+                sys.stdout.buffer.write(efin.read())  # pylint: disable=no-member
 
 
 # EOF #

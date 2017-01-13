@@ -55,9 +55,9 @@ def main():
     args = parse_args()
 
     if args.password is None:
-        password = getpass.getpass().encode()
+        password = os.fsencode(getpass.getpass())
     else:
-        password = args.password.encode()
+        password = os.fsencode(args.password)
 
     salt = bytearray.fromhex(args.salt)
 
