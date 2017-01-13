@@ -17,12 +17,14 @@
 
 from .util import h2b, b2h, b2h_short
 from .auth_token import AuthToken
-from .filename import decrypt_filename
+from .filename import encrypt_filename, decrypt_filename
 from .file import File
 
 
 __all__ = ["h2b", "b2h", "b2h_short",
-           "AuthToken", "File", "decrypt_filename"]
+           "AuthToken", "File",
+           "encrypt_filename",
+           "decrypt_filename"]
 
 
 # EOF #

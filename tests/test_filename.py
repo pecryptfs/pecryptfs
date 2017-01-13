@@ -18,7 +18,8 @@
 
 
 import unittest
-from pecryptfs import AuthToken, decrypt_filename
+from pecryptfs import AuthToken, decrypt_filename, encrypt_filename
+from pecryptfs.filename import convert_6bit_to_8bit, convert_8bit_to_6bit
 
 
 class TestFilename(unittest.TestCase):
@@ -28,6 +29,28 @@ class TestFilename(unittest.TestCase):
 
     def tearDown(self):
         pass
+
+    def test_roundtrip_filename(self):
+        auth_token = AuthToken(b"Test")
+        filenames = [b"HelloWorld",
+                     b"a",
+                     b"\x01",
+                     b"ReallyLongFilename" * 12]
+
+        for filename in filenames:
+            self.assertEqual(filename,
+                             decrypt_filename(
+                                 auth_token,
+                                 encrypt_filename(auth_token, filename)))
+
+    def test_encrypt_filename(self):
+        enc_filename = b"ECRYPTFS_FNEK_ENCRYPTED.FWYp3QmdieuVx-ReNM93cFJhZmQKb9S.7xyoDzbVOSbBh3ttRUURq5F-zE--"
+        filename = b"TestFile"
+        auth_token = AuthToken(b"Test")
+
+        self.assertEqual(encrypt_filename(auth_token, filename,
+                                          junk=b'2s)\x84O&+iZ\x83\xa5\xd0A\t\xe3\x81Q\xfb\x13fB\x96\xb4'),
+                         enc_filename)
 
     def test_decrypt_filename(self):
         # decrypt the filename
@@ -47,6 +70,20 @@ class TestFilename(unittest.TestCase):
         wrong_auth_token = AuthToken(b"Password")
         with self.assertRaises(Exception):
             decrypt_filename(wrong_auth_token, enc_filename)
+
+    def test_convert_8bit_to_6bit(self):
+        text = b"FWYp3QmdieuVx-ReNM93cFJhZmQKb9S.7xyoDzbVOSbBh3ttRUURq5F-zE--"
+        result = (b"F)5\x15\xcc\xa9\xba\xae\xa1\xf4\x07je\x82\xc5\xa1\x15m\x97'\x16\x9c\xb7\x81'\xdf"
+                  b"\xb4?\xf9\xe1i\xe9\xcd\xb4^yv\x08\x1d\xd8t@\xfd\x00\x00")
+        self.assertEqual(convert_6bit_to_8bit(text), result)
+        self.assertEqual(text, convert_8bit_to_6bit(convert_6bit_to_8bit(text)))
+
+    def test_convert_6bit_to_8bit(self):
+        text = (b"F)5\x15\xcc\xa9\xba\xae\xa1\xf4\x07je\x82\xc5\xa1\x15m\x97'\x16\x9c\xb7\x81'\xdf"
+                b"\xb4?\xf9\xe1i\xe9\xcd\xb4^yv\x08\x1d\xd8t@\xfd\x00\x00")
+        result = b"FWYp3QmdieuVx-ReNM93cFJhZmQKb9S.7xyoDzbVOSbBh3ttRUURq5F-zE--"
+        self.assertEqual(result, convert_8bit_to_6bit(text))
+        self.assertEqual(text, convert_6bit_to_8bit(convert_8bit_to_6bit(text)))
 
 
 if __name__ == "__main__":
