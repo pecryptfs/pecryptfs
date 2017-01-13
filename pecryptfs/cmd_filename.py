@@ -54,8 +54,4 @@ def main():
                 sys.stdout.buffer.write(filename.encode() + b" -> " + real_filename + b"\n")
 
 
-if __name__ == "__main__":
-    main()
-
-
 # EOF #

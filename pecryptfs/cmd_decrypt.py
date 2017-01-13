@@ -59,8 +59,4 @@ def main():
                 sys.stdout.buffer.write(efin.read())
 
 
-if __name__ == "__main__":
-    main()
-
-
 # EOF #
