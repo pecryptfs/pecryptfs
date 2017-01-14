@@ -54,12 +54,32 @@ class TestFilename(unittest.TestCase):
 
     def test_decrypt_filename(self):
         # decrypt the filename
-        enc_filename = b"ECRYPTFS_FNEK_ENCRYPTED.FWYp3QmdieuVx-ReNM93cFJhZmQKb9S.7xyoDzbVOSbBh3ttRUURq5F-zE--"
-        right_auth_token = AuthToken(b"Test")
-        self.assertEqual(decrypt_filename(right_auth_token, enc_filename), b"TestFile")
+        auth_token = AuthToken(b"Test")
+
+        # Password: Test
+        # Salt:     0011223344556677
+        # Filename: TestFile
+        # -------------------------------------------------------------------------------------------------
+        data = [
+            ('aes',      16, b"ECRYPTFS_FNEK_ENCRYPTED.FWYp3QmdieuVx-ReNM93cFJhZmQKb9S.7xyoDzbVOSbBh3ttRUURq5F-zE--"),
+            ('aes',      32, b"ECRYPTFS_FNEK_ENCRYPTED.FWYp3QmdieuVx-aK6fArd1FkXCt3ijqL6Arsiu3IFxKKhksWZXxt2HR.i---"),
+            ('aes',      24, b"ECRYPTFS_FNEK_ENCRYPTED.FWYp3QmdieuVx-UP0Bp5ZhSV8z0l0qmRIVPgjmpEsGWRgxIcl0sTzLZcs---"),
+            ('blowfish', 16, b"ECRYPTFS_FNEK_ENCRYPTED.FWYp3QmdieuVx-Fi4vCFunEkpmguVPgTV8O7OCI7gcIM0RzNtZOMT.ad8k--"),
+            ('blowfish', 32, b"ECRYPTFS_FNEK_ENCRYPTED.FWYp3QmdieuVx-Gcj-1XYP8.88HiL.Iqo1dD0FdJ43mOKINZrz4jr23Alk--"),
+            ('blowfish', 56, b"ECRYPTFS_FNEK_ENCRYPTED.FWYp3QmdieuVx-ENJPazcrf3HQ7pWVxijnxeY.TJuf5cmIawdVooB35qhU--"),
+            ('des3_ede', 24, b"ECRYPTFS_FNEK_ENCRYPTED.FWYp3QmdieuVx-7SUzZ0hbmbz5nk3WMwv4ZjYta1MzcS0Zfdls0zMhkKmk--"),
+        ]
+        # twofish  16  ECRYPTFS_FNEK_ENCRYPTED.FWYp3QmdieuVx-dxaIZlhnn0IL1A0yGabE.2NzWC-quHTGlvm8pmEKMfbk--
+        # twofish  32  ECRYPTFS_FNEK_ENCRYPTED.FWYp3QmdieuVx-fYL1xMpMmdFjqaJi9sIgj8dZ-JCGwSNy1z0jeaA3Xa0U--
+        # cast6    16  ECRYPTFS_FNEK_ENCRYPTED.FWYp3QmdieuVx-iVruuRcV5MVN0bTnYT8x7OmVQPutg9Nd8wzTUkDI3Y4E--
+        # cast6    32  ECRYPTFS_FNEK_ENCRYPTED.FWYp3QmdieuVx-hXoa6jmmm7G6ncyvOwfrhKvnaTxcFRZZA2T8r6pirQ.---
+        # cast5    16  ECRYPTFS_FNEK_ENCRYPTED.FWYp3QmdieuVx-CmuNOpVG2GsCd8MdmEh7ndp5ixhBAtzsKYxq46G0BYH---
+
+        for cipher, key_bytes, enc_filename in data:
+            self.assertEqual(decrypt_filename(auth_token, enc_filename, key_bytes=key_bytes), b"TestFile")
 
         # passthrough of unencrypted filename
-        self.assertEqual(decrypt_filename(right_auth_token, b"TestFile"), b"TestFile")
+        self.assertEqual(decrypt_filename(auth_token, b"TestFile"), b"TestFile")
 
     def test_incorrect_key(self):
         enc_filename = b"ECRYPTFS_FNEK_ENCRYPTED.FWYp3QmdieuVx-ReNM93cFJhZmQKb9S.7xyoDzbVOSbBh3ttRUURq5F-zE--"

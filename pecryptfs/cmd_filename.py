@@ -37,6 +37,8 @@ def parse_args():
     action_group.add_argument('-e', '--encrypt', action='store_true', help='Encrypt filenames')
     action_group.add_argument('-d', '--decrypt', action='store_true', help='Decrypt filenames')
 
+    action_group.add_argument('-k', '--key-bytes', type=int, help='Number of bytes in the encryption key', default=None)
+
     parser.add_argument('-m', '--move', action='store_true', help='Rename files to their decrypted names')
 
     parser.add_argument('-p', '--password', type=str, help='Password to use for decryption, prompt when none given')
@@ -76,12 +78,12 @@ def main():
         elif args.decrypt:
             if not filename.startswith(ECRYPTFS_FNEK_ENCRYPTED_FILENAME_PREFIX):
                 continue
-            new_filename = decrypt_filename(auth_token, filename)
+            new_filename = decrypt_filename(auth_token, filename, key_bytes=args.key_bytes)
         else:
             # FIXME: toggling per filename is a bad idea, should be
             # either all decrypt or all encrypt
             if filename.startswith(ECRYPTFS_FNEK_ENCRYPTED_FILENAME_PREFIX):
-                new_filename = decrypt_filename(auth_token, filename)
+                new_filename = decrypt_filename(auth_token, filename, key_bytes=args.key_bytes)
             else:
                 new_filename = encrypt_filename(auth_token, filename)
 

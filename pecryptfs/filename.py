@@ -17,11 +17,16 @@
 
 import random
 import binascii
-from Crypto.Cipher import AES
+from Crypto.Cipher import AES, Blowfish, DES3
 
 from pecryptfs.define import (
     ECRYPTFS_TAG_70_PACKET_TYPE,
-    ECRYPTFS_FNEK_ENCRYPTED_FILENAME_PREFIX)
+    ECRYPTFS_FNEK_ENCRYPTED_FILENAME_PREFIX,
+    RFC2440_CIPHER_AES_128,
+    RFC2440_CIPHER_AES_192,
+    RFC2440_CIPHER_AES_256,
+    RFC2440_CIPHER_BLOWFISH,
+    RFC2440_CIPHER_DES3_EDE)
 
 
 PORTABLE_FILENAME_CHARS = b"-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
@@ -37,7 +42,26 @@ def build_filename_rev_map():
 FILENAME_REV_MAP = build_filename_rev_map()
 
 
-def decrypt_filename(auth_token, enc_filename):
+def make_cipher(auth_token, tag, key_bytes=None):
+    if tag == RFC2440_CIPHER_AES_128:
+        return AES.new(auth_token.session_key[0:16], AES.MODE_ECB, IV=b"\x00" * 16)
+    elif tag == RFC2440_CIPHER_AES_192:
+        return AES.new(auth_token.session_key[0:24], AES.MODE_ECB, IV=b"\x00" * 16)
+    elif tag == RFC2440_CIPHER_AES_256:
+        return AES.new(auth_token.session_key[0:32], AES.MODE_ECB, IV=b"\x00" * 16)
+    elif tag == RFC2440_CIPHER_BLOWFISH:
+        return Blowfish.new(auth_token.session_key[0:key_bytes], Blowfish.MODE_ECB, IV=b"\x00" * 16)
+    elif tag == RFC2440_CIPHER_DES3_EDE:
+        return DES3.new(auth_token.session_key[0:24], DES3.MODE_ECB, IV=b"\x00" * 16)
+    else:
+        # RFC2440_CIPHER_CAST_5 = 0x03
+        # RFC2440_CIPHER_TWOFISH = 0x0a
+        # RFC2440_CIPHER_CAST_6 = 0x0b
+        # RFC2440_CIPHER_RSA = 0x01
+        raise Exception("unknown cipher tag: {}".format(tag))
+
+
+def decrypt_filename(auth_token, enc_filename, key_bytes=None):
     if not enc_filename.startswith(ECRYPTFS_FNEK_ENCRYPTED_FILENAME_PREFIX):
         # assume unencrypted filename
         return enc_filename
@@ -52,10 +76,9 @@ def decrypt_filename(auth_token, enc_filename):
         if binascii.hexlify(signature) != auth_token.signature:
             raise Exception("signature mismatch, key not suited for filename")
 
-        i = 11
+        cipher = make_cipher(auth_token, data[10], key_bytes)
 
-        cipher = AES.new(auth_token.session_key[0:16], AES.MODE_ECB, IV=b"\x00" * 16)
-        text = data[i:i + block_aligned_filename_size]
+        text = data[11:11 + block_aligned_filename_size]
         res = cipher.decrypt(text)
         _, filename = res.split(b'\0', 1)
         return filename.rstrip(b'\x00')
