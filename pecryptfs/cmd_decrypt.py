@@ -43,18 +43,18 @@ def main():
     else:
         password = os.fsencode(args.password)
 
-    salt = bytearray.fromhex(args.salt)
+    salt = bytes.fromhex(args.salt)
 
     auth_token = pecryptfs.AuthToken(password, salt)
 
     for filename in args.files:
         if args.info:
-            with pecryptfs.File.from_file(filename, password) as efin:
-                print("session key:", b2h(efin.session_key[0:16]))
-                print("            ", b2h(efin.session_key[16:16+16]))
-                print("            ", b2h(efin.session_key[32:32+16]))
-                print("            ", b2h(efin.session_key[48:48+16]))
-                print("signature:", efin.signature)
+            with pecryptfs.File.from_file(filename, auth_token) as efin:
+                print("session key:", b2h(auth_token.session_key[0:16]))
+                print("            ", b2h(auth_token.session_key[16:16+16]))
+                print("            ", b2h(auth_token.session_key[32:32+16]))
+                print("            ", b2h(auth_token.session_key[48:48+16]))
+                print("signature:", auth_token.signature)
         else:
             with pecryptfs.File.from_file(filename, auth_token) as efin:
                 sys.stdout.buffer.write(efin.read())  # pylint: disable=no-member
