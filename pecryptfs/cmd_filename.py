@@ -36,13 +36,15 @@ def parse_args():
     auth_group = parser.add_argument_group("Authentication / Cipher")
     auth_group.add_argument('-p', '--password', type=str, help='Password to use for decryption, prompt when none given')
     auth_group.add_argument('-s', '--salt', type=str, help='Salt to use for decryption', default="0011223344556677")
-    auth_group.add_argument('-k', '--key-bytes', metavar='BYTES', type=int, help='Number of bytes in the encryption key', default=None)
+    auth_group.add_argument('-k', '--key-bytes', metavar='BYTES', type=int, default=None,
+                            help='Number of bytes in the encryption key')
 
     action_group = parser.add_argument_group("Action").add_mutually_exclusive_group()
     action_group.add_argument('-a', '--auto', action='store_true', help='Encrypt or decrypt filenames (default)')
     action_group.add_argument('-e', '--encrypt', action='store_true', help='Encrypt filenames')
     action_group.add_argument('-d', '--decrypt', action='store_true', help='Decrypt filenames')
-    action_group.add_argument('-m', '--move', action='store_true', help='Rename files to their encrypted/decrypted names')
+    action_group.add_argument('-m', '--move', action='store_true',
+                              help='Rename files to their encrypted/decrypted names')
 
     return parser.parse_args()
 
