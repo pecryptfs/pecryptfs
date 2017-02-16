@@ -15,7 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import random
+import hashlib
 import binascii
 from Crypto.Cipher import AES, Blowfish, DES3
 
@@ -84,15 +84,32 @@ def decrypt_filename(auth_token, enc_filename, key_bytes=None):
         return filename.rstrip(b'\x00')
 
 
-def encrypt_filename(auth_token, filename, junk=None):
-    cipher = AES.new(auth_token.session_key[0:16], AES.MODE_ECB, IV=b"\x00" * 16)
+def round_to_multiple_of(n, base):
+    return (n + base - 1) // base * base
 
-    sys_rnd = random.SystemRandom()
-    if junk is None:
-        junk = bytes(list((sys_rnd.randint(1, 255) for _ in range(16))))
 
-    # filenames are padded with random \0 terminated junk in the front
-    junked_filename = junk + b"\x00" + filename
+def generate_filename_prefix(auth_token, filename):
+    """Used as prefix padding for blockaligned encrypted filename
+    see ecryptfs/keystore.c:ecryptfs_write_tag_70_packet()"""
+
+    block_aligned_filename_len = max(32,
+                                     round_to_multiple_of(16 + 1 + len(filename), 16))
+    prefix_len = block_aligned_filename_len - len(filename) - 1
+
+    prefix = hashlib.md5(auth_token.session_key).digest()
+    while len(prefix) < prefix_len:
+        prefix += hashlib.md5(prefix).digest()
+
+    print(prefix[0:prefix_len])
+    return prefix[0:prefix_len]
+
+
+def encrypt_filename(auth_token, filename, junk=None, key_bytes=24):
+    cipher = AES.new(auth_token.session_key[0:key_bytes], AES.MODE_ECB, IV=b"\x00" * 16)
+
+    prefix_padding = generate_filename_prefix(auth_token, filename)
+
+    junked_filename = prefix_padding + b"\x00" + filename
 
     padding_length = (((len(junked_filename) - 1) // 16) + 1) * 16 - len(junked_filename)
     padded_filename = junked_filename + b'\x00' * padding_length
@@ -104,7 +121,7 @@ def encrypt_filename(auth_token, filename, junk=None):
                 binascii.unhexlify(auth_token.signature) +
                 b"\x07" +
                 res +
-                b"\x00\x00"
+                b"\x00"
                 ))
 
 
