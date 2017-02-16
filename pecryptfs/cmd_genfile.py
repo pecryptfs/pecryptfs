@@ -42,7 +42,9 @@ def generate_encrypted_file(cipher, key_bytes, password, salt):
                            "ecryptfs_key_bytes={}".format(key_bytes)]),
            back_directory,
            front_directory]
-    subprocess.check_call(cmd)
+
+    with open(os.devnull, 'w') as devnull:
+        subprocess.check_call(cmd, stdout=devnull)
 
     # write file and let it be encrypted
     with open(os.path.join(front_directory, "TestFile"), "w") as fout:
@@ -84,7 +86,9 @@ def generate_encrypted_filename(cipher, key_bytes, password, salt, input_filenam
                            "ecryptfs_key_bytes={}".format(key_bytes)]),
            back_directory,
            front_directory]
-    subprocess.check_call(cmd)
+
+    with open(os.devnull, 'w') as devnull:
+        subprocess.check_call(cmd, stdout=devnull)
 
     # write file and let it be encrypted
     with open(os.path.join(front_directory, input_filename), "w") as fout:
