@@ -44,15 +44,15 @@ FILENAME_REV_MAP = build_filename_rev_map()
 
 def make_cipher(auth_token, tag, key_bytes=None):
     if tag == RFC2440_CIPHER_AES_128:
-        return AES.new(auth_token.session_key[0:16], AES.MODE_ECB, IV=b"\x00" * 16)
+        return AES.new(auth_token.session_key[0:16], AES.MODE_ECB)
     elif tag == RFC2440_CIPHER_AES_192:
-        return AES.new(auth_token.session_key[0:24], AES.MODE_ECB, IV=b"\x00" * 16)
+        return AES.new(auth_token.session_key[0:24], AES.MODE_ECB)
     elif tag == RFC2440_CIPHER_AES_256:
-        return AES.new(auth_token.session_key[0:32], AES.MODE_ECB, IV=b"\x00" * 16)
+        return AES.new(auth_token.session_key[0:32], AES.MODE_ECB)
     elif tag == RFC2440_CIPHER_BLOWFISH:
-        return Blowfish.new(auth_token.session_key[0:key_bytes], Blowfish.MODE_ECB, IV=b"\x00" * 16)
+        return Blowfish.new(auth_token.session_key[0:key_bytes], Blowfish.MODE_ECB)
     elif tag == RFC2440_CIPHER_DES3_EDE:
-        return DES3.new(auth_token.session_key[0:24], DES3.MODE_ECB, IV=b"\x00" * 16)
+        return DES3.new(auth_token.session_key[0:24], DES3.MODE_ECB)
     else:
         # RFC2440_CIPHER_CAST_5 = 0x03
         # RFC2440_CIPHER_TWOFISH = 0x0a
@@ -105,7 +105,7 @@ def generate_filename_prefix(auth_token, filename):
 
 
 def encrypt_filename(auth_token, filename, junk=None, key_bytes=24):
-    cipher = AES.new(auth_token.session_key[0:key_bytes], AES.MODE_ECB, IV=b"\x00" * 16)
+    cipher = AES.new(auth_token.session_key[0:key_bytes], AES.MODE_ECB)
 
     prefix_padding = generate_filename_prefix(auth_token, filename)
 
