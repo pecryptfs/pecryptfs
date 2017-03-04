@@ -25,19 +25,23 @@ import io
 
 import pecryptfs
 from pecryptfs.filename import encrypt_filename, decrypt_filename
+from pecryptfs.ecryptfs import encrypt_filename_ecryptfs
 from pecryptfs.define import ECRYPTFS_FNEK_ENCRYPTED_FILENAME_PREFIX
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Decrypt and encrypt filenames from/for a eCryptfs volume")
+    parser = argparse.ArgumentParser(description="Encrypt/decrypt eCryptfs filenames")
     parser.add_argument('files', metavar='FILE', type=str, nargs='+', help='Filenames to process')
     parser.add_argument('-v', '--verbose', action='store_true', help='Be more verbose')
 
     auth_group = parser.add_argument_group("Authentication / Cipher")
     auth_group.add_argument('-p', '--password', type=str, help='Password to use for decryption, prompt when none given')
     auth_group.add_argument('-s', '--salt', type=str, help='Salt to use for decryption', default="0011223344556677")
-    auth_group.add_argument('-k', '--key-bytes', metavar='BYTES', type=int, default=None,
+    auth_group.add_argument('-c', '--cipher', type=str, help='Cipher to use for encryption', default="aes")
+    auth_group.add_argument('-k', '--key-bytes', metavar='BYTES', type=int, default=16,
                             help='Number of bytes in the encryption key')
+    auth_group.add_argument('--native', action='store_true',
+                            help='Use ecryptfs to perform the task instead of Python')
 
     action_group = parser.add_argument_group("Action").add_mutually_exclusive_group()
     action_group.add_argument('-a', '--auto', action='store_true', help='Encrypt or decrypt filenames (default)')
@@ -62,47 +66,53 @@ def main():
         raise Exception("--move requires explicit --encrypt or --decrypt")
 
     if args.password is None:
-        password = os.fsencode(getpass.getpass())
+        password = getpass.getpass()
     else:
-        password = os.fsencode(args.password)
+        password = args.password
 
-    salt = bytearray.fromhex(args.salt)
+    salt = args.salt
+
+    if args.native:
+        encrypt = encrypt_filename_ecryptfs
+    else:
+        encrypt = encrypt_filename
 
     auth_token = pecryptfs.AuthToken(password, salt)
 
-    for filename in args.files:
-        filename = os.fsencode(filename)
-
-        base = os.path.dirname(filename)
-        filename = os.path.basename(filename)
+    for path in args.files:
+        dirname = os.path.dirname(path)
+        filename = os.path.basename(path)
 
         if args.encrypt:
             if filename.startswith(ECRYPTFS_FNEK_ENCRYPTED_FILENAME_PREFIX):
                 if args.verbose:
-                    print("already encrypted, ignoring {}".format(os.fsdecode(filename)))
+                    print("already encrypted, ignoring {}".format(filename))
                 continue
-            new_filename = encrypt_filename(auth_token, filename)
+            new_filename = encrypt(filename, auth_token, args.cipher, args.key_bytes)
         elif args.decrypt:
             if not filename.startswith(ECRYPTFS_FNEK_ENCRYPTED_FILENAME_PREFIX):
                 if args.verbose:
-                    print("missing FNEK marker, ignoring {}".format(os.fsdecode(filename)))
+                    print("missing FNEK marker, ignoring {}".format(filename))
                 continue
-            new_filename = decrypt_filename(auth_token, filename, key_bytes=args.key_bytes)
+            new_filename = decrypt_filename(filename, auth_token, key_bytes=args.key_bytes)
         else:  # auto
             # FIXME: toggling per filename is a bad idea, should be
             # either all decrypt or all encrypt
             if filename.startswith(ECRYPTFS_FNEK_ENCRYPTED_FILENAME_PREFIX):
-                new_filename = decrypt_filename(auth_token, filename, key_bytes=args.key_bytes)
+                new_filename = decrypt_filename(filename, auth_token, key_bytes=args.key_bytes)
             else:
-                new_filename = encrypt_filename(auth_token, filename)
+                new_filename = encrypt(filename, auth_token, args.cipher, args.key_bytes)
 
         if args.move:
             if filename != new_filename:
-                os.rename(os.path.join(base, filename),
+                os.rename(os.path.join(dirname, filename),
                           os.path.join(new_filename))
         else:
-            print("{} -> {}".format(os.fsdecode(os.path.join(base, filename)),
-                                    os.fsdecode(os.path.join(base, new_filename))))
+            if args.verbose:
+                print("{} -> {}".format(os.path.join(dirname, filename),
+                                        os.path.join(dirname, new_filename)))
+            else:
+                print(os.path.join(dirname, new_filename))
 
 
 # EOF #

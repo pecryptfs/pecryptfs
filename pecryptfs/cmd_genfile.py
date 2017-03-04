@@ -20,7 +20,7 @@
 import argparse
 import os
 
-from pecryptfs.ecryptfs import generate_encrypted_file, generate_encrypted_filename
+from pecryptfs.ecryptfs import generate_encrypted_file
 
 
 def main():
@@ -31,7 +31,9 @@ def main():
     parser.add_argument('-s', '--salt', type=str, default="0011223344556677",
                         help='Salt to use for decryption')
     parser.add_argument('-o', '--output', type=str, help='Output directory')
-    parser.add_argument('-f', '--filename', action='store_true', help='Generate filenames')
+    parser.add_argument('-c', '--cipher', type=str, help='Cipher to use', default="aes")
+    parser.add_argument('-k', '--key-bytes', type=int, help='Key bytes to use', default=24)
+    parser.add_argument('-v', '--verbose', action='store_true', help='Be verbose')
 
     args = parser.parse_args()
 
@@ -39,37 +41,30 @@ def main():
     salt = args.salt
     output_directory = args.output
 
-    if not args.filename:
-        if not os.path.isdir(output_directory):
-            os.makedirs(output_directory)
+    if not os.path.isdir(output_directory):
+        os.makedirs(output_directory)
 
-    cipher_list = [("aes", [16, 32, 24]),
-                   ("blowfish", [16, 32, 56]),
-                   ("des3_ede", [24]),
-                   ("twofish", [16, 32]),
-                   ("cast6", [16, 32]),
-                   ("cast5", [16])]
+    cipher = args.cipher
+    key_bytes = args.key_bytes
 
-    input_filename = "TestFile"
-    filenames = []
-    for cipher, key_bytes_list in cipher_list:
-        for key_bytes in key_bytes_list:
-            if args.filename:
-                filename = generate_encrypted_filename(cipher, key_bytes, password, salt, input_filename)
-                filenames.append((cipher, key_bytes, filename))
-            else:
-                data = generate_encrypted_file(cipher, key_bytes, password, salt)
-                output_filename = "{}-{}.raw".format(cipher, key_bytes)
-                with open(os.path.join(output_directory, output_filename), "wb") as fout:
-                    fout.write(data)
+    for input_filename in args.files:
+        filenames = []
 
-    print()
-    print("Password: {}".format(args.password))
-    print("Salt:     {}".format(args.salt))
-    print("Filename: {}".format(input_filename))
-    print()
-    for cipher, key_bytes, f in filenames:
-        print("{:8}  {:2}  {}".format(cipher, key_bytes, f))
+        data = generate_encrypted_file(cipher, key_bytes, password, salt)
+        output_filename = "{}-{}.raw".format(cipher, key_bytes)
+        with open(os.path.join(output_directory, output_filename), "wb") as fout:
+            fout.write(data)
+
+        if args.verbose:
+            print("Password: {}".format(args.password))
+            print("Salt:     {}".format(args.salt))
+            print("Filename: {}".format(input_filename))
+            print()
+            for cipher, key_bytes, f in filenames:
+                print("{:8}  {:2}  {}".format(cipher, key_bytes, f))
+        else:
+            for cipher, key_bytes, f in filenames:
+                print(f)
 
 
 # EOF #

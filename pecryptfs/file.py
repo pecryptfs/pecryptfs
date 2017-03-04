@@ -34,20 +34,31 @@ class File:
         self.fin = fin
         self.auth_token = auth_token
 
+        # see ecryptfs_write_headers_virt
+
         header = fin.read(8192)
         self.file_size = struct.unpack(">q", header[0:8])[0]
         self.marker1, self.marker2 = struct.unpack(">II", header[8:16])
         self.version = header[16]
         self.reserved = header[17:19]
         self.flags = header[19]
+
         self.header_extent_size = struct.unpack(">i", header[20:24])[0]
         self.header_extent_count = struct.unpack(">h", header[24:26])[0]
+        assert self.header_extent_size == 4096
+        assert self.header_extent_count == 2
+
         self.rfc2440 = header[24:8192]
 
         # rfc2440 Tag3/Tag11
         self.salt = header[32:32 + 8]
         self.hash_iterations = header[32 + 8]
         self.encrypted_key = header[41:41 + 16]
+        # b'\xed\x16b\x08_CONSOLE\x00' follows
+
+        print("16:", header[41+16:41+16+13])
+        print("32:", header[41+32:41+32+13])
+        print("56:", header[41+56:41+56+13])
 
         # check that the file is a proper eCryptfs file
         if self.marker1 != self.marker2 ^ MAGIC_ECRYPTFS_MARKER:

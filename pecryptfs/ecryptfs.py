@@ -21,18 +21,16 @@ import os
 import subprocess
 import tempfile
 
-from pecryptfs import AuthToken
 
-
-def generate_encrypted_file(cipher, key_bytes, password, salt):
+def generate_encrypted_file(auth_token, cipher, key_bytes):
     back_directory = tempfile.mkdtemp("_pecryptfs_back")
     front_directory = tempfile.mkdtemp("_pecryptfs_front")
 
     # mount the encrypted directory
     cmd = ["sudo", "mount",
            "-t", "ecryptfs",
-           "-o", ",".join(["key=passphrase:passwd={}".format(password),
-                           "passphrase_salt={}".format(salt),
+           "-o", ",".join(["key=passphrase:passwd={}".format(auth_token.password_text),
+                           "passphrase_salt={}".format(auth_token.salt_text),
                            "ecryptfs_enable_filename_crypto=no",
                            "ecryptfs_passthrough=no",
                            "ecryptfs_unlink_sigs",
@@ -65,10 +63,10 @@ def generate_encrypted_file(cipher, key_bytes, password, salt):
     return data
 
 
-def generate_encrypted_filename(cipher, key_bytes, password, salt, filename):
+def encrypt_filename_ecryptfs(filename, auth_token, cipher="aes", key_bytes=24):
     """Encrypts the given filename using native ecrypt"""
 
-    auth_token = AuthToken(os.fsencode(password), bytes.fromhex(salt))
+    filename = os.fsdecode(filename)
 
     back_directory = tempfile.mkdtemp("_pecryptfs_back")
     front_directory = tempfile.mkdtemp("_pecryptfs_front")
@@ -76,8 +74,8 @@ def generate_encrypted_filename(cipher, key_bytes, password, salt, filename):
     # mount the encrypted directory
     cmd = ["sudo", "mount",
            "-t", "ecryptfs",
-           "-o", ",".join(["key=passphrase:passwd={}".format(password),
-                           "passphrase_salt={}".format(salt),
+           "-o", ",".join(["key=passphrase:passwd={}".format(auth_token.password_text),
+                           "passphrase_salt={}".format(auth_token.salt_text),
                            "ecryptfs_enable_filename_crypto=yes",
                            "ecryptfs_passthrough=no",
                            "ecryptfs_unlink_sigs",

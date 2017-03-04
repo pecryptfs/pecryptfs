@@ -17,19 +17,38 @@
 
 import hashlib
 import binascii
+import os
 
 
 class AuthToken:
 
-    def __init__(self, password, salt=b"\x00\x11\x22\x33\x44\x55\x66\x77", hash_iterations=65536):
-        self.password = password
-        self.salt = salt
+    def __init__(self, password: str, salt: str="0011223344556677"):
+        self.password_text = password
+        self.password_bin = os.fsencode(password)
 
-        self.session_key = self.salt + self.password
-        for _ in range(hash_iterations):
-            self.session_key = hashlib.sha512(self.session_key).digest()
+        self.salt_text = salt
+        self.salt_bin = bytearray.fromhex(salt)
 
-        self.signature = binascii.hexlify(hashlib.sha512(self.session_key).digest()[0:8])
+        self._session_key = None
+        self._signature = None
+
+    @property
+    def session_key(self):
+        if self._session_key is None:
+            hash_iterations = 65536
+
+            tmp_key = self.salt_bin + self.password_bin
+            for _ in range(hash_iterations):
+                tmp_key = hashlib.sha512(tmp_key).digest()
+            self._session_key = tmp_key
+
+        return self._session_key
+
+    @property
+    def signature(self):
+        if self._signature is None:
+            self._signature = binascii.hexlify(hashlib.sha512(self.session_key).digest()[0:8])
+        return self._signature
 
 
 # EOF #
