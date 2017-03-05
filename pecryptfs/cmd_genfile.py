@@ -21,6 +21,7 @@ import argparse
 import os
 
 from pecryptfs.ecryptfs import generate_encrypted_file
+from pecryptfs.auth_token import AuthToken
 
 
 def main():
@@ -37,8 +38,6 @@ def main():
 
     args = parser.parse_args()
 
-    password = args.password
-    salt = args.salt
     output_directory = args.output
 
     if not os.path.isdir(output_directory):
@@ -47,10 +46,12 @@ def main():
     cipher = args.cipher
     key_bytes = args.key_bytes
 
+    auth_token = AuthToken(args.password, args.salt)
+
     for input_filename in args.files:
         filenames = []
 
-        data = generate_encrypted_file(cipher, key_bytes, password, salt)
+        data = generate_encrypted_file(auth_token, cipher, key_bytes)
         output_filename = "{}-{}.raw".format(cipher, key_bytes)
         with open(os.path.join(output_directory, output_filename), "wb") as fout:
             fout.write(data)

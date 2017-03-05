@@ -17,7 +17,14 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import os
 import unittest
+
+import pecryptfs.file
+from pecryptfs.auth_token import AuthToken
+
+
+AES16_DATA_FILENAME = os.path.join(os.path.dirname(__file__), 'data/aes-16.raw')
 
 
 class TestFilename(unittest.TestCase):
@@ -27,6 +34,12 @@ class TestFilename(unittest.TestCase):
 
     def tearDown(self):
         pass
+
+    def test_file_read(self):
+        auth_token = AuthToken('Test')
+        with pecryptfs.file.File.from_file(AES16_DATA_FILENAME, auth_token, 'aes', 16) as fin:
+            content = fin.read()
+        self.assertEqual(content, b'Hello World\n')
 
 
 if __name__ == "__main__":

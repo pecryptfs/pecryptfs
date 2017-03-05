@@ -25,14 +25,16 @@ from pecryptfs.define import MAGIC_ECRYPTFS_MARKER
 class File:
 
     @staticmethod
-    def from_file(filename, auth_token):
+    def from_file(filename, auth_token, cipher, key_bytes):
         fin = open(filename, "rb")
-        efs = File(fin, auth_token)
+        efs = File(fin, auth_token, cipher, key_bytes)
         return efs
 
-    def __init__(self, fin, auth_token):
+    def __init__(self, fin, auth_token, cipher, key_bytes):
         self.fin = fin
         self.auth_token = auth_token
+        self.cipher = cipher
+        self.key_bytes = key_bytes
 
         # see ecryptfs_write_headers_virt
 
@@ -56,19 +58,19 @@ class File:
         self.encrypted_key = header[41:41 + 16]
         # b'\xed\x16b\x08_CONSOLE\x00' follows
 
-        print("16:", header[41+16:41+16+13])
-        print("32:", header[41+32:41+32+13])
-        print("56:", header[41+56:41+56+13])
+        # print("16:", header[41+16:41+16+13])
+        # print("32:", header[41+32:41+32+13])
+        # print("56:", header[41+56:41+56+13])
 
         # check that the file is a proper eCryptfs file
         if self.marker1 != self.marker2 ^ MAGIC_ECRYPTFS_MARKER:
             raise Exception("marker missmatch, not a eCryptfs encrypted file")
 
-        if self.salt != self.auth_token.salt:
+        if self.salt != self.auth_token.salt_bin:
             raise Exception("salt of file and auth_token missmatch")
 
         # calculate keys
-        cipher = AES.new(self.auth_token.session_key[0:16], AES.MODE_CBC, IV=b"\x00" * 16)
+        cipher = AES.new(self.auth_token.session_key[0:key_bytes], AES.MODE_CBC, IV=b"\x00" * 16)
         self.key = cipher.decrypt(self.encrypted_key)
 
         self.root_iv = hashlib.md5(self.key).digest()

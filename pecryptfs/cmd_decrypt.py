@@ -29,12 +29,16 @@ from pecryptfs import b2h
 def main():
     parser = argparse.ArgumentParser(description="eCryptfs file decrypter")
     parser.add_argument('files', metavar='FILE', type=str, nargs='+', help='Files to extract')
-    parser.add_argument('-p', '--password', type=str,
-                        help=('Password to use for decryption, prompt when none given. '
-                              'This is the one used in ".ecryptfs/wrapped-passphrase", '
-                              'which can be recovered with "ecryptfs-unwrap-passphrase '
-                              '.ecryptfs/wrapped-passphrase"'))
-    parser.add_argument('-s', '--salt', type=str, help='Salt to use for decryption', default="0011223344556677")
+    auth_group = parser.add_argument_group("Authentication / Cipher")
+    auth_group.add_argument('-p', '--password', type=str,
+                            help=('Password to use for decryption, prompt when none given. '
+                                  'This is the one used in ".ecryptfs/wrapped-passphrase", '
+                                  'which can be recovered with "ecryptfs-unwrap-passphrase '
+                                  '.ecryptfs/wrapped-passphrase"'))
+    auth_group.add_argument('-s', '--salt', type=str, help='Salt to use for decryption', default="0011223344556677")
+    auth_group.add_argument('-c', '--cipher', type=str, help='Cipher to use for encryption', default="aes")
+    auth_group.add_argument('-k', '--key-bytes', metavar='BYTES', type=int, default=16,
+                            help='Number of bytes in the encryption key')
     parser.add_argument('-i', '--info', action="store_true", help="Print info about the file")
     args = parser.parse_args()
 
@@ -47,14 +51,14 @@ def main():
 
     for filename in args.files:
         if args.info:
-            with pecryptfs.File.from_file(filename, auth_token) as efin:
+            with pecryptfs.File.from_file(filename, auth_token, args.cipher, key_bytes=args.key_bytes) as efin:
                 print("session key:", b2h(auth_token.session_key[0:16]))
                 print("            ", b2h(auth_token.session_key[16:16+16]))
                 print("            ", b2h(auth_token.session_key[32:32+16]))
                 print("            ", b2h(auth_token.session_key[48:48+16]))
                 print("signature:", auth_token.signature)
         else:
-            with pecryptfs.File.from_file(filename, auth_token) as efin:
+            with pecryptfs.File.from_file(filename, auth_token, args.cipher, args.key_bytes) as efin:
                 sys.stdout.buffer.write(efin.read())  # pylint: disable=no-member
 
 
