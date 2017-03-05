@@ -43,9 +43,7 @@ def main():
     else:
         password = os.fsencode(args.password)
 
-    salt = bytes.fromhex(args.salt)
-
-    auth_token = pecryptfs.AuthToken(password, salt)
+    auth_token = pecryptfs.AuthToken(password, args.salt)
 
     for filename in args.files:
         if args.info:
