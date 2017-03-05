@@ -25,7 +25,7 @@ import io
 
 import pecryptfs
 from pecryptfs.filename import encrypt_filename, decrypt_filename
-from pecryptfs.ecryptfs import encrypt_filename_ecryptfs
+from pecryptfs.ecryptfs import encrypt_filename_ecryptfs, decrypt_filename_ecryptfs
 from pecryptfs.define import ECRYPTFS_FNEK_ENCRYPTED_FILENAME_PREFIX
 
 
@@ -33,6 +33,12 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Encrypt/decrypt eCryptfs filenames")
     parser.add_argument('files', metavar='FILE', type=str, nargs='+', help='Filenames to process')
     parser.add_argument('-v', '--verbose', action='store_true', help='Be more verbose')
+    parser.add_argument('--native', action='store_true',
+                        help='Use ecryptfs to perform the task instead of Python')
+    parser.add_argument('-m', '--move', action='store_true',
+                        help='Rename files to their encrypted/decrypted names')
+    parser.add_argument('-f', '--force', action='store_true',
+                        help='Perform encryption even if the filename is already encrypted')
 
     auth_group = parser.add_argument_group("Authentication / Cipher")
     auth_group.add_argument('-p', '--password', type=str, help='Password to use for decryption, prompt when none given')
@@ -40,15 +46,11 @@ def parse_args():
     auth_group.add_argument('-c', '--cipher', type=str, help='Cipher to use for encryption', default="aes")
     auth_group.add_argument('-k', '--key-bytes', metavar='BYTES', type=int, default=16,
                             help='Number of bytes in the encryption key')
-    auth_group.add_argument('--native', action='store_true',
-                            help='Use ecryptfs to perform the task instead of Python')
 
     action_group = parser.add_argument_group("Action").add_mutually_exclusive_group()
     action_group.add_argument('-a', '--auto', action='store_true', help='Encrypt or decrypt filenames (default)')
     action_group.add_argument('-e', '--encrypt', action='store_true', help='Encrypt filenames')
     action_group.add_argument('-d', '--decrypt', action='store_true', help='Decrypt filenames')
-    action_group.add_argument('-m', '--move', action='store_true',
-                              help='Rename files to their encrypted/decrypted names')
 
     return parser.parse_args()
 
@@ -74,8 +76,10 @@ def main():
 
     if args.native:
         encrypt = encrypt_filename_ecryptfs
+        decrypt = decrypt_filename_ecryptfs
     else:
         encrypt = encrypt_filename
+        decrypt = decrypt_filename
 
     auth_token = pecryptfs.AuthToken(password, salt)
 
@@ -84,7 +88,7 @@ def main():
         filename = os.path.basename(path)
 
         if args.encrypt:
-            if filename.startswith(ECRYPTFS_FNEK_ENCRYPTED_FILENAME_PREFIX):
+            if not args.force and filename.startswith(ECRYPTFS_FNEK_ENCRYPTED_FILENAME_PREFIX):
                 if args.verbose:
                     print("already encrypted, ignoring {}".format(filename))
                 continue
@@ -94,12 +98,12 @@ def main():
                 if args.verbose:
                     print("missing FNEK marker, ignoring {}".format(filename))
                 continue
-            new_filename = decrypt_filename(filename, auth_token, key_bytes=args.key_bytes)
+            new_filename = decrypt(filename, auth_token, key_bytes=args.key_bytes)
         else:  # auto
             # FIXME: toggling per filename is a bad idea, should be
             # either all decrypt or all encrypt
             if filename.startswith(ECRYPTFS_FNEK_ENCRYPTED_FILENAME_PREFIX):
-                new_filename = decrypt_filename(filename, auth_token, key_bytes=args.key_bytes)
+                new_filename = decrypt(filename, auth_token, key_bytes=args.key_bytes)
             else:
                 new_filename = encrypt(filename, auth_token, args.cipher, args.key_bytes)
 

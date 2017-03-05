@@ -64,7 +64,7 @@ def generate_encrypted_file(auth_token, cipher, key_bytes):
 
 
 def encrypt_filename_ecryptfs(filename, auth_token, cipher="aes", key_bytes=24):
-    """Encrypts the given filename using native ecrypt"""
+    """Encrypt the given filename using native ecryptfs"""
 
     filename = os.fsdecode(filename)
 
@@ -106,6 +106,52 @@ def encrypt_filename_ecryptfs(filename, auth_token, cipher="aes", key_bytes=24):
     os.rmdir(front_directory)
 
     return encrypted_filename
+
+
+def decrypt_filename_ecryptfs(enc_filename, auth_token, cipher="aes", key_bytes=24):
+    """Decrypt the given filename using native ecryptfs"""
+
+    enc_filename = os.fsdecode(enc_filename)
+
+    back_directory = tempfile.mkdtemp("_pecryptfs_back")
+    front_directory = tempfile.mkdtemp("_pecryptfs_front")
+
+    # write file and let it be encrypted
+    with open(os.path.join(back_directory, enc_filename), "w") as fout:
+        fout.write("Hello World\n")
+
+    # mount the encrypted directory
+    cmd = ["sudo", "mount",
+           "-t", "ecryptfs",
+           "-o", ",".join(["key=passphrase:passwd={}".format(auth_token.password_text),
+                           "passphrase_salt={}".format(auth_token.salt_text),
+                           "ecryptfs_enable_filename_crypto=yes",
+                           "ecryptfs_passthrough=no",
+                           "ecryptfs_unlink_sigs",
+                           "ecryptfs_fnek_sig={}".format(os.fsdecode(auth_token.signature)),
+                           "no_sig_cache",
+                           "ecryptfs_cipher={}".format(cipher),
+                           "ecryptfs_key_bytes={}".format(key_bytes)]),
+           back_directory,
+           front_directory]
+
+    with open(os.devnull, 'w') as devnull:
+        subprocess.check_call(cmd, stdout=devnull)
+
+    # retrieve the decrypted filename
+    files = os.listdir(front_directory)
+    assert len(files) == 1
+    filename = files[0]
+
+    # unmount the encrypted diretorys
+    subprocess.check_call(["sudo", "umount", front_directory])
+
+    os.unlink(os.path.join(back_directory, enc_filename))
+
+    os.rmdir(back_directory)
+    os.rmdir(front_directory)
+
+    return filename
 
 
 # EOF #
