@@ -17,9 +17,29 @@
 
 import hashlib
 import struct
-from Crypto.Cipher import AES
+from Crypto.Cipher import AES, Blowfish, DES3
 
 from pecryptfs.define import MAGIC_ECRYPTFS_MARKER
+from pecryptfs.filename import make_cipher_from_desc
+
+
+def make_cipher_from_desc2(key, cipher, key_bytes, iv):
+    if cipher == "aes" and key_bytes == 16:
+        return AES.new(key[0:16], AES.MODE_CBC, iv)
+    elif cipher == "aes" and key_bytes == 24:
+        return AES.new(key[0:24], AES.MODE_CBC, iv)
+    elif cipher == "aes" and key_bytes == 32:
+        return AES.new(key[0:32], AES.MODE_CBC, iv)
+    elif cipher == "blowfish":
+        return Blowfish.new(key[0:key_bytes], Blowfish.MODE_CBC, iv[:8])
+    elif cipher == "des3":
+        return DES3.new(key[0:24], DES3.MODE_CBC, iv)
+    else:
+        # RFC2440_CIPHER_CAST_5 = 0x03
+        # RFC2440_CIPHER_TWOFISH = 0x0a
+        # RFC2440_CIPHER_CAST_6 = 0x0b
+        # RFC2440_CIPHER_RSA = 0x01
+        raise Exception("unknown cipher: {}:{}".format(cipher, key_bytes))
 
 
 class File:
@@ -55,7 +75,7 @@ class File:
         # rfc2440 Tag3/Tag11
         self.salt = header[32:32 + 8]
         self.hash_iterations = header[32 + 8]
-        self.encrypted_key = header[41:41 + 16]
+        self.encrypted_key = header[41:41 + self.key_bytes]
         # b'\xed\x16b\x08_CONSOLE\x00' follows
 
         # print("16:", header[41+16:41+16+13])
@@ -70,9 +90,11 @@ class File:
             raise Exception("salt of file and auth_token missmatch")
 
         # calculate keys
-        cipher = AES.new(self.auth_token.session_key[0:key_bytes], AES.MODE_CBC, IV=b"\x00" * 16)
-        self.key = cipher.decrypt(self.encrypted_key)
+        # cipher = AES.new(self.auth_token.session_key[0:key_bytes], AES.MODE_ECB)
+        cipher = make_cipher_from_desc(self.auth_token, cipher, key_bytes)
 
+        self.key = cipher.decrypt(self.encrypted_key)
+        # print("\nLEN:", len(self.key))
         self.root_iv = hashlib.md5(self.key).digest()
 
     def close(self):
@@ -96,7 +118,8 @@ class File:
 
             derived_iv = hashlib.md5(self.root_iv + struct.pack("<Q", 0x30 + page) + b"\x00" * 8).digest()
 
-            decryptor = AES.new(self.key, AES.MODE_CBC, IV=derived_iv)
+            # decryptor = AES.new(self.key, AES.MODE_CBC, IV=derived_iv)
+            decryptor = make_cipher_from_desc2(self.key, self.cipher, self.key_bytes, derived_iv)
             output = decryptor.decrypt(data)
 
             result += output[0:actual_block_size]

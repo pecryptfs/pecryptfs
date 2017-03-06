@@ -24,7 +24,7 @@ import pecryptfs.file
 from pecryptfs.auth_token import AuthToken
 
 
-AES16_DATA_FILENAME = os.path.join(os.path.dirname(__file__), 'data/aes-16.raw')
+DATADIR = os.path.join(os.path.dirname(__file__), 'data')
 
 
 class TestFilename(unittest.TestCase):
@@ -37,9 +37,23 @@ class TestFilename(unittest.TestCase):
 
     def test_file_read(self):
         auth_token = AuthToken('Test')
-        with pecryptfs.file.File.from_file(AES16_DATA_FILENAME, auth_token, 'aes', 16) as fin:
-            content = fin.read()
-        self.assertEqual(content, b'Hello World\n')
+
+        ciphers = [
+            ('aes', 16),
+            # ('aes', 24),
+            ('aes', 32),
+            ('blowfish', 32)
+        ]
+
+        for cipher, key_bytes in ciphers:
+            try:
+                with pecryptfs.file.File.from_file(os.path.join(DATADIR, '{}-{}.raw'.format(cipher, key_bytes)),
+                                                   auth_token, cipher, key_bytes) as fin:
+                    content = fin.read()
+                self.assertEqual(content, b'Hello World\n')
+            except:
+                print("failure in {} {}".format(cipher, key_bytes))
+                raise
 
 
 if __name__ == "__main__":
