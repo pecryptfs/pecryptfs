@@ -16,7 +16,6 @@
 
 
 import hashlib
-import binascii
 import os
 
 
@@ -45,9 +44,9 @@ class AuthToken:
         return self._session_key
 
     @property
-    def signature(self):
+    def signature_text(self):
         if self._signature is None:
-            self._signature = binascii.hexlify(hashlib.sha512(self.session_key).digest()[0:8])
+            self._signature = hashlib.sha512(self.session_key).digest()[0:8].hex()
         return self._signature
 
 

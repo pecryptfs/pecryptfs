@@ -17,7 +17,6 @@
 
 import os
 import hashlib
-import binascii
 from Crypto.Cipher import AES, Blowfish, DES3
 
 from pecryptfs.auth_token import AuthToken
@@ -119,7 +118,7 @@ def decrypt_filename(enc_filename: str, auth_token: AuthToken, key_bytes=None) -
         block_aligned_filename_size = pkg_len - 8 - 1
 
         signature = data[2:10]
-        if binascii.hexlify(signature) != auth_token.signature:
+        if signature.hex() != auth_token.signature_text:
             raise Exception("signature mismatch, key not suited for filename")
 
         cipher = make_cipher(auth_token, data[10], key_bytes)
@@ -198,7 +197,7 @@ def encrypt_filename(filename: str, auth_token: AuthToken, cipher_desc="aes", ke
     res = cipher.encrypt(padded_filename)
 
     payload = (bytes([ECRYPTFS_TAG_70_PACKET_TYPE, len(padded_filename) + 9]) +
-               binascii.unhexlify(auth_token.signature) +
+               bytes.fromhex(auth_token.signature_text) +
                bytes([get_cipher_tag(cipher_desc, key_bytes)]) +
                res +
                generate_filename_suffix(padded_filename))

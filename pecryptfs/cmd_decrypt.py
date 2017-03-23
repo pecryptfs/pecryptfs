@@ -56,7 +56,7 @@ def main():
                 print("            ", b2h(auth_token.session_key[16:16+16]))
                 print("            ", b2h(auth_token.session_key[32:32+16]))
                 print("            ", b2h(auth_token.session_key[48:48+16]))
-                print("signature:", auth_token.signature)
+                print("signature:", auth_token.signature_text)
         else:
             with pecryptfs.File.from_file(filename, auth_token, args.cipher, args.key_bytes) as efin:
                 sys.stdout.buffer.write(efin.read())  # pylint: disable=no-member
