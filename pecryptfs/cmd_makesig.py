@@ -20,12 +20,11 @@
 import argparse
 import getpass
 import sys
-import io
 
 import pecryptfs
 
 
-def parse_args():
+def parse_args(args):
     parser = argparse.ArgumentParser(description="Generate hex signature from password")
     parser.add_argument('-v', '--verbose', action='store_true', help='Be more verbose')
 
@@ -33,17 +32,11 @@ def parse_args():
     auth_group.add_argument('-p', '--password', type=str, help='Password to use for decryption, prompt when none given')
     auth_group.add_argument('-s', '--salt', type=str, help='Salt to use for decryption', default="0011223344556677")
 
-    return parser.parse_args()
+    return parser.parse_args(args)
 
 
-def main():
-    # Python 3.5.2 still doesn't have "surrogateescape" enabled by
-    # default on stdout/stderr, so we have to do it manually. Test with:
-    #   print(os.fsdecode(b"\xff"))
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, errors="surrogateescape", line_buffering=True)
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, errors="surrogateescape", line_buffering=True)
-
-    args = parse_args()
+def main(argv):
+    args = parse_args(argv[1:])
 
     if args.password is None:
         password = getpass.getpass()
@@ -55,6 +48,10 @@ def main():
     auth_token = pecryptfs.AuthToken(password, salt)
 
     print(auth_token.signature_text)
+
+
+def pip_main():
+    main(sys.argv)
 
 
 # EOF #

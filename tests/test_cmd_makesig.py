@@ -1,7 +1,7 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 
 # pecryptfs - Portable Userspace eCryptfs
-# Copyright (C) 2016 Ingo Ruhnke <grumbel@gmail.com>
+# Copyright (C) 2015 Ingo Ruhnke <grumbel@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,23 +17,25 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from setuptools import setup, find_packages
+import unittest
+import io
+from contextlib import redirect_stdout, redirect_stderr
+
+import pecryptfs.cmd_makesig
 
 
-setup(name='pecryptfs',
-      version='0.1.0',
-      scripts=[],
-      entry_points={
-          'console_scripts': [
-              'pecryptfs-decrypt = pecryptfs.cmd_decrypt:main',
-              'pecryptfs-filename = pecryptfs.cmd_filename:main',
-              'pecryptfs-genfile = pecryptfs.cmd_genfile:main',
-              'pecryptfs-makesig = pecryptfs.cmd_makesig:pip_main',
-              'pecryptfs-ls = pecryptfs.cmd_ls:main'
-          ],
-          'gui_scripts': []
-          },
-      packages=['pecryptfs'])
+class TestCmdMakesig(unittest.TestCase):
+
+    def test_main(self):
+        stdout, stderr = io.StringIO(), io.StringIO()
+        with redirect_stdout(stdout), redirect_stderr(stderr):
+            pecryptfs.cmd_makesig.main(['pecryptfs-makesig', '-p', 'Test'])
+        self.assertEqual(stdout.getvalue(), "3515cca9baaea1f4\n")
+        self.assertEqual(stderr.getvalue(), "")
+
+
+if __name__ == "__main__":
+    unittest.main()
 
 
 # EOF #
