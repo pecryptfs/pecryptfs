@@ -50,7 +50,7 @@ To encrypt a filename:
 
 To decrypt a filename:
 
-    $ pecryptfs-filename --encrypt ECRYPTFS_FNEK_ENCRYPTED.FWYp3QmdieuVx-ReNM93cFJhZmQKb9S.7xyoNLh2yALCb17qYCkx232fM---
+    $ pecryptfs-filename --decrypt ECRYPTFS_FNEK_ENCRYPTED.FWYp3QmdieuVx-ReNM93cFJhZmQKb9S.7xyoNLh2yALCb17qYCkx232fM---
     Password:
     HelloWorld
 
