@@ -28,6 +28,7 @@ setup(name='pecryptfs',
               'pecryptfs-decrypt = pecryptfs.cmd_decrypt:main',
               'pecryptfs-filename = pecryptfs.cmd_filename:main',
               'pecryptfs-genfile = pecryptfs.cmd_genfile:main',
+              'pecryptfs-makesig = pecryptfs.cmd_makesig:main',
               'pecryptfs-ls = pecryptfs.cmd_ls:main'
           ],
           'gui_scripts': []
