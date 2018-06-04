@@ -61,5 +61,6 @@ install:
 
 .PHONY: autopep test flake pylint clean
 
+.NOTPARALLEL: all
 
 # EOF #
