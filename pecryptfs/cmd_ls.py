@@ -43,11 +43,11 @@ def main():
         for directory in args.files:
             for filename in os.listdir(directory):
                 real_filename = pecryptfs.decrypt_filename(filename, auth_token)
-                print(real_filename)
+                print("{} -> {}".format(real_filename, filename))
     else:
         for filename in args.files:
             real_filename = pecryptfs.decrypt_filename(filename, auth_token)
-            print(real_filename)
+            print("{} -> {}".format(real_filename, filename))
 
 
 # EOF #
