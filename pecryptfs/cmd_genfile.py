@@ -17,6 +17,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+from typing import List
+
 import argparse
 import os
 
@@ -49,7 +51,7 @@ def main():
     auth_token = AuthToken(args.password, args.salt)
 
     for input_filename in args.files:
-        filenames = []
+        filenames: List[str] = []
 
         data = generate_encrypted_file(auth_token, cipher, key_bytes)
         output_filename = "{}-{}.raw".format(cipher, key_bytes)

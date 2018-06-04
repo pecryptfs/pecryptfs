@@ -19,7 +19,6 @@
 
 import argparse
 import getpass
-import os
 import sys
 
 import pecryptfs
@@ -43,9 +42,9 @@ def main():
     args = parser.parse_args()
 
     if args.password is None:
-        password = os.fsencode(getpass.getpass())
+        password = getpass.getpass()
     else:
-        password = os.fsencode(args.password)
+        password = args.password
 
     auth_token = pecryptfs.AuthToken(password, args.salt)
 

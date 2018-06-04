@@ -51,7 +51,7 @@ class TestFilename(unittest.TestCase):
                                                    auth_token, cipher, key_bytes) as fin:
                     content = fin.read()
                 self.assertEqual(content, b'Hello World\n')
-            except:
+            except Exception:
                 print("failure in {} {}".format(cipher, key_bytes))
                 raise
 

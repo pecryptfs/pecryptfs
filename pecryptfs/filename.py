@@ -104,8 +104,8 @@ def get_cipher_tag(cipher: str, key_bytes: int):
         raise Exception("unknown cipher '{}:{}'".format(cipher, key_bytes))
 
 
-def decrypt_filename(enc_filename: str, auth_token: AuthToken, key_bytes=None) -> str:
-    enc_filename = os.fsdecode(enc_filename)  # type: str
+def decrypt_filename(enc_filename_bin: str, auth_token: AuthToken, cipher: str="aes", key_bytes: int=24) -> str:
+    enc_filename = os.fsdecode(enc_filename_bin)  # type: str
 
     if not enc_filename.startswith(ECRYPTFS_FNEK_ENCRYPTED_FILENAME_PREFIX):
         # assume unencrypted filename
@@ -121,10 +121,10 @@ def decrypt_filename(enc_filename: str, auth_token: AuthToken, key_bytes=None) -
         if signature.hex() != auth_token.signature_text:
             raise Exception("signature mismatch, key not suited for filename")
 
-        cipher = make_cipher(auth_token, data[10], key_bytes)
+        cipher_proc = make_cipher(auth_token, data[10], key_bytes)
 
         text = data[11:11 + block_aligned_filename_size]
-        res = cipher.decrypt(text)
+        res = cipher_proc.decrypt(text)
 
         try:
             _, filename = res.rsplit(b'\0', 1)
@@ -183,22 +183,22 @@ def generate_filename_suffix(padded_filename) -> bytes:
         raise Exception("filename to long")
 
 
-def encrypt_filename(filename: str, auth_token: AuthToken, cipher_desc="aes", key_bytes=24) -> str:
-    filename = os.fsencode(filename)  # type: bytes
+def encrypt_filename(filename: str, auth_token: AuthToken, cipher: str="aes", key_bytes: int=24) -> str:
+    filename_bin: bytes = os.fsencode(filename)
 
-    cipher = make_cipher_from_desc(auth_token, cipher_desc, key_bytes)
+    cipher_proc = make_cipher_from_desc(auth_token, cipher, key_bytes)
 
-    prefix_padding = generate_filename_prefix(auth_token, filename)
+    prefix_padding = generate_filename_prefix(auth_token, filename_bin)
 
-    junked_filename = prefix_padding + b"\x00" + filename
+    junked_filename = prefix_padding + b"\x00" + filename_bin
 
     padding_length = (((len(junked_filename) - 1) // 16) + 1) * 16 - len(junked_filename)
     padded_filename = junked_filename + b'\x00' * padding_length
-    res = cipher.encrypt(padded_filename)
+    res = cipher_proc.encrypt(padded_filename)
 
     payload = (bytes([ECRYPTFS_TAG_70_PACKET_TYPE, len(padded_filename) + 9]) +
                bytes.fromhex(auth_token.signature_text) +
-               bytes([get_cipher_tag(cipher_desc, key_bytes)]) +
+               bytes([get_cipher_tag(cipher, key_bytes)]) +
                res +
                generate_filename_suffix(padded_filename))
 

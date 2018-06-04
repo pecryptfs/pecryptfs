@@ -24,7 +24,7 @@ from pecryptfs import AuthToken
 class TestAuthToken(unittest.TestCase):
 
     def setUp(self):
-        self.auth_token = AuthToken(b"Password")
+        self.auth_token = AuthToken("Password")
 
     def tearDown(self):
         pass

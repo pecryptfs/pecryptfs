@@ -82,10 +82,10 @@ class TestFilename(unittest.TestCase):
     def test_incorrect_key(self):
         enc_filename = "ECRYPTFS_FNEK_ENCRYPTED.FWYp3QmdieuVx-ReNM93cFJhZmQKb9S.7xyoDzbVOSbBh3ttRUURq5F-zE--"
 
-        right_auth_token = AuthToken(b"Test")
+        right_auth_token = AuthToken("Test")
         self.assertEqual(decrypt_filename(enc_filename, right_auth_token), "TestFile")
 
-        wrong_auth_token = AuthToken(b"Password")
+        wrong_auth_token = AuthToken("Password")
         with self.assertRaises(Exception):
             decrypt_filename(enc_filename, wrong_auth_token)
 
