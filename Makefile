@@ -18,13 +18,28 @@ SOURCES := $(wildcard \
   pecryptfs/*.py \
   tests/*.py)
 
-all: flake test # autopep
+all: mypy flake test # autopep
 
 autopep:
 	autopep8  --max-line=120  --in-place $(SOURCES)
 
 test:
 	python3 -m unittest discover -s tests/
+
+mypy:
+	mypy \
+        --incremental \
+	--ignore-missing-imports \
+	--follow-imports silent \
+	--check-untyped-defs \
+	--warn-return-any \
+	--warn-unused-ignores \
+	--warn-incomplete-stub \
+	--warn-redundant-casts \
+	$(SOURCES)
+
+#	--disallow-any unimported,unannotated,decorated,explicit,generics \
+#	--disallow-any unimported,expr,unannotated,decorated,explicit,generics \
 
 flake:
 	flake8 --max-line-length=120 $(SOURCES)
