@@ -24,10 +24,10 @@ import subprocess
 import tempfile
 
 if TYPE_CHECKING:
-    from pecryptfs.auth_token import AuthToken
+    from pecryptfs.auth_token import AuthToken  # noqa: F401
 
 
-def generate_encrypted_file(auth_token: AuthToken, cipher: str, key_bytes: str) -> bytes:
+def generate_encrypted_file(auth_token: 'AuthToken', cipher: str, key_bytes: str) -> bytes:
     back_directory = tempfile.mkdtemp("_pecryptfs_back")
     front_directory = tempfile.mkdtemp("_pecryptfs_front")
 
@@ -68,7 +68,7 @@ def generate_encrypted_file(auth_token: AuthToken, cipher: str, key_bytes: str) 
     return data
 
 
-def encrypt_filename_ecryptfs(filename: str, auth_token: AuthToken, cipher: str="aes", key_bytes: int=24) -> str:
+def encrypt_filename_ecryptfs(filename: str, auth_token: 'AuthToken', cipher: str="aes", key_bytes: int=24) -> str:
     """Encrypt the given filename using native ecryptfs"""
 
     filename = os.fsdecode(filename)
@@ -113,7 +113,7 @@ def encrypt_filename_ecryptfs(filename: str, auth_token: AuthToken, cipher: str=
     return encrypted_filename
 
 
-def decrypt_filename_ecryptfs(enc_filename_bin: str, auth_token: AuthToken,
+def decrypt_filename_ecryptfs(enc_filename_bin: str, auth_token: 'AuthToken',
                               cipher: str="aes", key_bytes: int=24) -> str:
     """Decrypt the given filename using native ecryptfs"""
 

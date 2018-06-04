@@ -15,11 +15,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+from typing import TYPE_CHECKING
+
 import os
 import hashlib
 from Crypto.Cipher import AES, Blowfish, DES3
-
-from pecryptfs.auth_token import AuthToken
 
 from pecryptfs.define import (
     ECRYPTFS_TAG_70_PACKET_TYPE,
@@ -30,6 +30,9 @@ from pecryptfs.define import (
     RFC2440_CIPHER_AES_256,
     RFC2440_CIPHER_BLOWFISH,
     RFC2440_CIPHER_DES3_EDE)
+
+if TYPE_CHECKING:
+    from pecryptfs.auth_token import AuthToken  # noqa: F401
 
 
 PORTABLE_FILENAME_CHARS = b"-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
@@ -104,7 +107,7 @@ def get_cipher_tag(cipher: str, key_bytes: int):
         raise Exception("unknown cipher '{}:{}'".format(cipher, key_bytes))
 
 
-def decrypt_filename(enc_filename_bin: str, auth_token: AuthToken, cipher: str="aes", key_bytes: int=24) -> str:
+def decrypt_filename(enc_filename_bin: str, auth_token: 'AuthToken', cipher: str="aes", key_bytes: int=24) -> str:
     enc_filename = os.fsdecode(enc_filename_bin)  # type: str
 
     if not enc_filename.startswith(ECRYPTFS_FNEK_ENCRYPTED_FILENAME_PREFIX):
@@ -143,7 +146,7 @@ def round_to_multiple_of(n, base):
     return (n + base - 1) // base * base
 
 
-def generate_filename_prefix(auth_token: AuthToken, filename) -> bytes:
+def generate_filename_prefix(auth_token: 'AuthToken', filename) -> bytes:
     """Used as prefix padding for blockaligned encrypted filename
     see ecryptfs/keystore.c:ecryptfs_write_tag_70_packet()"""
 
@@ -183,7 +186,7 @@ def generate_filename_suffix(padded_filename) -> bytes:
         raise Exception("filename to long")
 
 
-def encrypt_filename(filename: str, auth_token: AuthToken, cipher: str="aes", key_bytes: int=24) -> str:
+def encrypt_filename(filename: str, auth_token: 'AuthToken', cipher: str="aes", key_bytes: int=24) -> str:
     filename_bin: bytes = os.fsencode(filename)
 
     cipher_proc = make_cipher_from_desc(auth_token, cipher, key_bytes)
