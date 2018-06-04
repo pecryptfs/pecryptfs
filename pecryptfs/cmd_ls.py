@@ -33,13 +33,11 @@ def main():
     args = parser.parse_args()
 
     if args.password is None:
-        password = os.fsencode(getpass.getpass())
+        password = getpass.getpass()
     else:
-        password = os.fsencode(args.password)
+        password = args.password
 
-    salt = bytearray.fromhex(args.salt)
-
-    auth_token = pecryptfs.AuthToken(password, salt)
+    auth_token = pecryptfs.AuthToken(password, args.salt)
 
     if args.directory:
         for directory in args.files:
