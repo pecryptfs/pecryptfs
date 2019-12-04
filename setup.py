@@ -22,7 +22,14 @@ from setuptools import setup, find_packages
 
 setup(name='pecryptfs',
       version='0.1.0',
-      scripts=[],
+      author = "Ingo Ruhnke",
+      author_email = "grumbel@gmail.com",
+      url='https://gitlab.com/pecryptfs/pecryptfs',
+      description="Portable Userspace eCryptfs",
+      long_description="pecryptfs is a simple and somewhat incomplete Python \
+reimplementation of the eCryptfs filesystem encryption. Unlike \
+eCryptfs, which is a Linux kernel module, pecryptfs runs completely in \
+userspace and works on individual files via command line tools.",
       entry_points={
           'console_scripts': [
               'pecryptfs-decrypt = pecryptfs.cmd_decrypt:main',
@@ -31,9 +38,8 @@ setup(name='pecryptfs',
               'pecryptfs-makesig = pecryptfs.cmd_makesig:pip_main',
               'pecryptfs-ls = pecryptfs.cmd_ls:main'
           ],
-          'gui_scripts': []
-          },
-      packages=['pecryptfs'])
+      },
+      packages=find_packages())
 
 
 # EOF #
