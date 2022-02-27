@@ -2,3 +2,4 @@
 *~
 /.pylint/
 /.mypy_cache/
+/result
