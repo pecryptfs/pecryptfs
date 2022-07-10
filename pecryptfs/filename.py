@@ -259,8 +259,8 @@ def convert_8bit_to_6bit(data_8bit: bytes) -> str:
             result.append((c & 0b00111111))
             bit_offset = 0
 
-    for i in range(len(result)):
-        result[i] = PORTABLE_FILENAME_CHARS[result[i]]
+    for idx, _ in enumerate(result):
+        result[idx] = PORTABLE_FILENAME_CHARS[result[idx]]
 
     return result.decode("utf-8")
 

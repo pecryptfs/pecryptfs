@@ -1,7 +1,0 @@
-[MESSAGES CONTROL]
-disable=missing-docstring,
-        too-few-public-methods,
-        fixme,
-        invalid-name,
-        too-many-instance-attributes,
-        locally-disabled

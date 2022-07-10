@@ -53,7 +53,7 @@ class File:
 
     @staticmethod
     def from_file(filename: str, auth_token: AuthToken, cipher: str, key_bytes: int) -> 'File':
-        fin = open(filename, "rb")
+        fin = open(filename, "rb")  # pylint: disable=consider-using-with
         efs = File(fin, auth_token, cipher, key_bytes)
         return efs
 
