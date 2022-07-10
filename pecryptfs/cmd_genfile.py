@@ -26,14 +26,14 @@ from pecryptfs.ecryptfs import generate_encrypted_file
 from pecryptfs.auth_token import AuthToken
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="eCryptfs Encrypted File Generator")
     parser.add_argument('files', metavar='FILE', type=str, nargs='+', help='Filenames to decrypt')
     parser.add_argument('-p', '--password', type=str, default="Test",
                         help='Password to use for decryption, prompt when none given')
     parser.add_argument('-s', '--salt', type=str, default="0011223344556677",
                         help='Salt to use for decryption')
-    parser.add_argument('-o', '--output', type=str, help='Output directory')
+    parser.add_argument('-o', '--output', type=str, help='Output directory', required=True)
     parser.add_argument('-c', '--cipher', type=str, help='Cipher to use', default="aes")
     parser.add_argument('-k', '--key-bytes', type=int, help='Key bytes to use', default=24)
     parser.add_argument('-v', '--verbose', action='store_true', help='Be verbose')
@@ -51,11 +51,10 @@ def main():
     auth_token = AuthToken(args.password, args.salt)
 
     for input_filename in args.files:
-        filenames: List[str] = []
-
         data = generate_encrypted_file(auth_token, cipher, key_bytes)
         output_filename = "{}-{}.raw".format(cipher, key_bytes)
-        with open(os.path.join(output_directory, output_filename), "wb") as fout:
+        output = os.path.join(output_directory, output_filename)
+        with open(output, "wb") as fout:
             fout.write(data)
 
         if args.verbose:
@@ -63,11 +62,9 @@ def main():
             print("Salt:     {}".format(args.salt))
             print("Filename: {}".format(input_filename))
             print()
-            for cipher, key_bytes, f in filenames:
-                print("{:8}  {:2}  {}".format(cipher, key_bytes, f))
+            print("{:8}  {:2}  {}".format(cipher, key_bytes, output))
         else:
-            for cipher, key_bytes, f in filenames:
-                print(f)
+            print(output_filename)
 
 
 # EOF #
