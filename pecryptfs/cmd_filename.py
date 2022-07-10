@@ -29,7 +29,7 @@ from pecryptfs.ecryptfs import encrypt_filename_ecryptfs, decrypt_filename_ecryp
 from pecryptfs.define import ECRYPTFS_FNEK_ENCRYPTED_FILENAME_PREFIX
 
 
-def parse_args():
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Encrypt/decrypt eCryptfs filenames")
     parser.add_argument('files', metavar='FILE', type=str, nargs='+', help='Filenames to process')
     parser.add_argument('-v', '--verbose', action='store_true', help='Be more verbose')
@@ -55,7 +55,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def main():
+def main() -> None:
     # Python 3.5.2 still doesn't have "surrogateescape" enabled by
     # default on stdout/stderr, so we have to do it manually. Test with:
     #   print(os.fsdecode(b"\xff"))

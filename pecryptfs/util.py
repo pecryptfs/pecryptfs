@@ -15,11 +15,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-def h2b(text):
+def h2b(text: str) -> bytes:
     return bytes([int(h, 16) for h in text.split(".")])
 
 
-def b2h(data):
+def b2h(data: bytes) -> str:
     return ".".join([("0x%02x" % c) for c in data])
 
 

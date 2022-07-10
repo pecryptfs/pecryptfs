@@ -29,13 +29,13 @@ DATADIR = os.path.join(os.path.dirname(__file__), 'data')
 
 class TestFilename(unittest.TestCase):
 
-    def setUp(self):
+    def setUp(self) -> None:
         pass
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         pass
 
-    def test_file_read(self):
+    def test_file_read(self) -> None:
         auth_token = AuthToken('Test')
 
         ciphers = [

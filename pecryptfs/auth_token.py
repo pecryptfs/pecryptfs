@@ -15,6 +15,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+from typing import Optional
+
 import hashlib
 import os
 
@@ -22,21 +24,21 @@ import os
 class AuthToken:
 
     def __init__(self, password: str, salt: str = "0011223344556677") -> None:
-        self.password_text = password
-        self.password_bin = os.fsencode(password)
+        self.password_text: str = password
+        self.password_bin: bytes = os.fsencode(password)
 
-        self.salt_text = salt
-        self.salt_bin = bytearray.fromhex(salt)
+        self.salt_text: str = salt
+        self.salt_bin: bytes = bytes.fromhex(salt)
 
-        self._session_key = None
-        self._signature = None
+        self._session_key: Optional[bytes] = None
+        self._signature: Optional[str] = None
 
     @property
-    def session_key(self):
+    def session_key(self) -> bytes:
         if self._session_key is None:
             hash_iterations = 65536
 
-            tmp_key = self.salt_bin + self.password_bin
+            tmp_key: bytes = self.salt_bin + self.password_bin
             for _ in range(hash_iterations):
                 tmp_key = hashlib.sha512(tmp_key).digest()
             self._session_key = tmp_key
@@ -44,7 +46,7 @@ class AuthToken:
         return self._session_key
 
     @property
-    def signature_text(self):
+    def signature_text(self) -> str:
         if self._signature is None:
             self._signature = hashlib.sha512(self.session_key).digest()[0:8].hex()
         return self._signature

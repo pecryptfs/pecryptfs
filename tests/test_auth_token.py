@@ -23,16 +23,16 @@ from pecryptfs import AuthToken
 
 class TestAuthToken(unittest.TestCase):
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.auth_token = AuthToken("Password")
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         pass
 
-    def test_signature(self):
+    def test_signature(self) -> None:
         self.assertEqual(self.auth_token.signature_text, "326bd307c877876f")
 
-    def test_session_key(self):
+    def test_session_key(self) -> None:
         self.assertEqual(self.auth_token.session_key,
                          (b"m\x161\x12\xbb_\xa3\xa4\x99\x02T\x8e\xd6\xdcS*{:]k7\x1e+7+\xa4\xa8\x98\xf9)\x10\xd6!\xab"
                           b"\xe1G[\x1d\xf1Uq\xd24V\xf3c\xed\xaf\xc6\xaf\x96N\x9e\x96y\xe3\x92\xe9\xcc>\x9aD\x9fq"))

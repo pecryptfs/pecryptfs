@@ -31,8 +31,8 @@
             checkPhase = ''
               runHook preCheck
               flake8 pecryptfs tests
-              # pyright pecryptfs tests
-              # mypy pecryptfs tests
+              pyright pecryptfs tests
+              mypy pecryptfs tests
               # pylint pecryptfs tests
               python3 -m unittest discover -v -s tests/
               runHook postCheck

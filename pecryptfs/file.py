@@ -15,15 +15,22 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+from typing import Any, IO, Optional, Type
+from types import TracebackType
+
 import hashlib
 import struct
 from Crypto.Cipher import AES, Blowfish, DES3
 
+from pecryptfs.auth_token import AuthToken
 from pecryptfs.define import MAGIC_ECRYPTFS_MARKER
 from pecryptfs.filename import make_cipher_from_desc
 
 
-def make_cipher_from_desc2(key, cipher, key_bytes, iv):
+Cipher = Any
+
+
+def make_cipher_from_desc2(key: bytes, cipher: str, key_bytes: int, iv: bytes) -> Cipher:
     if cipher == "aes" and key_bytes == 16:
         return AES.new(key[0:16], AES.MODE_CBC, iv)
     elif cipher == "aes" and key_bytes == 24:
@@ -45,12 +52,12 @@ def make_cipher_from_desc2(key, cipher, key_bytes, iv):
 class File:
 
     @staticmethod
-    def from_file(filename, auth_token, cipher, key_bytes):
+    def from_file(filename: str, auth_token: AuthToken, cipher: str, key_bytes: int) -> 'File':
         fin = open(filename, "rb")
         efs = File(fin, auth_token, cipher, key_bytes)
         return efs
 
-    def __init__(self, fin, auth_token, cipher, key_bytes):
+    def __init__(self, fin: IO[bytes], auth_token: AuthToken, cipher: str, key_bytes: int) -> None:
         self.fin = fin
         self.auth_token = auth_token
         self.cipher = cipher
@@ -91,16 +98,16 @@ class File:
 
         # calculate keys
         # cipher = AES.new(self.auth_token.session_key[0:key_bytes], AES.MODE_ECB)
-        cipher = make_cipher_from_desc(self.auth_token, cipher, key_bytes)
+        cipher_proc: Cipher = make_cipher_from_desc(self.auth_token, cipher, key_bytes)
 
-        self.key = cipher.decrypt(self.encrypted_key)
+        self.key = cipher_proc.decrypt(self.encrypted_key)
         # print("\nLEN:", len(self.key))
         self.root_iv = hashlib.md5(self.key).digest()
 
-    def close(self):
+    def close(self) -> None:
         self.fin.close()
 
-    def read(self):
+    def read(self) -> bytes:
         page = 0
         byte_count = 0
         result = b""
@@ -127,11 +134,15 @@ class File:
 
         return result
 
-    def __enter__(self):
+    def __enter__(self) -> 'File':
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(self,  # pylint: disable=useless-return
+                 exc_type: Optional[Type[BaseException]],
+                 exc_value: Optional[BaseException],
+                 traceback: Optional[TracebackType]) -> Optional[bool]:
         self.close()
+        return None
 
 
 # EOF #

@@ -25,7 +25,7 @@ import pecryptfs
 from pecryptfs import b2h
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="eCryptfs file decrypter")
     parser.add_argument('files', metavar='FILE', type=str, nargs='+', help='Files to extract')
     auth_group = parser.add_argument_group("Authentication / Cipher")

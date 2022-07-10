@@ -26,7 +26,7 @@ import pecryptfs.cmd_makesig
 
 class TestCmdMakesig(unittest.TestCase):
 
-    def test_main(self):
+    def test_main(self) -> None:
         stdout, stderr = io.StringIO(), io.StringIO()
         with redirect_stdout(stdout), redirect_stderr(stderr):
             pecryptfs.cmd_makesig.main(['pecryptfs-makesig', '-p', 'Test'])

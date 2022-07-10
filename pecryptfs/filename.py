@@ -15,12 +15,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from typing import TYPE_CHECKING
+from typing import Any
 
 import os
 import hashlib
 from Crypto.Cipher import AES, Blowfish, DES3
 
+from pecryptfs.auth_token import AuthToken
 from pecryptfs.define import (
     ECRYPTFS_TAG_70_PACKET_TYPE,
     ECRYPTFS_FNEK_ENCRYPTED_FILENAME_PREFIX,
@@ -31,14 +32,14 @@ from pecryptfs.define import (
     RFC2440_CIPHER_BLOWFISH,
     RFC2440_CIPHER_DES3_EDE)
 
-if TYPE_CHECKING:
-    from pecryptfs.auth_token import AuthToken  # noqa: F401
+
+Cipher = Any
 
 
 PORTABLE_FILENAME_CHARS = b"-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 
 
-def build_filename_rev_map():
+def build_filename_rev_map() -> bytes:
     rev_map = bytearray(b"\x00" * 256)
     for i, c in enumerate(PORTABLE_FILENAME_CHARS):
         rev_map[c] = i
@@ -48,7 +49,7 @@ def build_filename_rev_map():
 FILENAME_REV_MAP = build_filename_rev_map()
 
 
-def make_cipher(auth_token, tag, key_bytes):
+def make_cipher(auth_token: AuthToken, tag: int, key_bytes: int) -> Cipher:
     if tag == RFC2440_CIPHER_AES_128:
         return AES.new(auth_token.session_key[0:16], AES.MODE_ECB)
     elif tag == RFC2440_CIPHER_AES_192:
@@ -67,7 +68,7 @@ def make_cipher(auth_token, tag, key_bytes):
         raise Exception("unknown cipher tag: {}".format(tag))
 
 
-def make_cipher_from_desc(auth_token, cipher, key_bytes):
+def make_cipher_from_desc(auth_token: AuthToken, cipher: str, key_bytes: int) -> Cipher:
     if cipher == "aes" and key_bytes == 16:
         return AES.new(auth_token.session_key[0:16], AES.MODE_ECB)
     elif cipher == "aes" and key_bytes == 24:
@@ -86,7 +87,7 @@ def make_cipher_from_desc(auth_token, cipher, key_bytes):
         raise Exception("unknown cipher: {}:{}".format(cipher, key_bytes))
 
 
-def get_cipher_tag(cipher: str, key_bytes: int):
+def get_cipher_tag(cipher: str, key_bytes: int) -> int:
     if cipher == "des3":
         return RFC2440_CIPHER_DES3_EDE
     # elif cipher == "cast5":
@@ -107,7 +108,7 @@ def get_cipher_tag(cipher: str, key_bytes: int):
         raise Exception("unknown cipher '{}:{}'".format(cipher, key_bytes))
 
 
-def decrypt_filename(enc_filename_bin: str, auth_token: 'AuthToken', cipher: str = "aes", key_bytes: int = 24) -> str:
+def decrypt_filename(enc_filename_bin: str, auth_token: AuthToken, cipher: str = "aes", key_bytes: int = 24) -> str:
     enc_filename = os.fsdecode(enc_filename_bin)  # type: str
 
     if not enc_filename.startswith(ECRYPTFS_FNEK_ENCRYPTED_FILENAME_PREFIX):
@@ -142,11 +143,11 @@ def decrypt_filename(enc_filename_bin: str, auth_token: 'AuthToken', cipher: str
         return os.fsdecode(result)
 
 
-def round_to_multiple_of(n, base):
+def round_to_multiple_of(n: int, base: int) -> int:
     return (n + base - 1) // base * base
 
 
-def generate_filename_prefix(auth_token: 'AuthToken', filename) -> bytes:
+def generate_filename_prefix(auth_token: AuthToken, filename: bytes) -> bytes:
     """Used as prefix padding for blockaligned encrypted filename
     see ecryptfs/keystore.c:ecryptfs_write_tag_70_packet()"""
 
@@ -161,7 +162,7 @@ def generate_filename_prefix(auth_token: 'AuthToken', filename) -> bytes:
     return prefix[0:prefix_len]
 
 
-def generate_filename_suffix(padded_filename) -> bytes:
+def generate_filename_suffix(padded_filename: bytes) -> bytes:
     # No idea yet how this padding is calculated, but this ugly hack
     # will do for now.
     if len(padded_filename) == 32:
@@ -186,7 +187,7 @@ def generate_filename_suffix(padded_filename) -> bytes:
         raise Exception("filename to long")
 
 
-def encrypt_filename(filename: str, auth_token: 'AuthToken', cipher: str = "aes", key_bytes: int = 24) -> str:
+def encrypt_filename(filename: str, auth_token: AuthToken, cipher: str = "aes", key_bytes: int = 24) -> str:
     filename_bin: bytes = os.fsencode(filename)
 
     cipher_proc = make_cipher_from_desc(auth_token, cipher, key_bytes)

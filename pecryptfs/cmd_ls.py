@@ -24,7 +24,7 @@ import os
 import pecryptfs
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="eCryptfs ls")
     parser.add_argument('files', metavar='FILE', type=str, nargs='+', help='Filenames to decrypt')
     parser.add_argument('-p', '--password', type=str, help='Password to use for decryption, prompt when none given')

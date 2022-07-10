@@ -24,7 +24,7 @@ import sys
 import pecryptfs
 
 
-def parse_args(args):
+def parse_args(args: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Generate hex signature from password")
     parser.add_argument('-v', '--verbose', action='store_true', help='Be more verbose')
 
@@ -35,7 +35,7 @@ def parse_args(args):
     return parser.parse_args(args)
 
 
-def main(argv):
+def main(argv: list[str]) -> None:
     args = parse_args(argv[1:])
 
     if args.password is None:
@@ -50,7 +50,7 @@ def main(argv):
     print(auth_token.signature_text)
 
 
-def pip_main():
+def pip_main() -> None:
     main(sys.argv)
 
 
