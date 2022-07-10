@@ -107,7 +107,7 @@ def get_cipher_tag(cipher: str, key_bytes: int):
         raise Exception("unknown cipher '{}:{}'".format(cipher, key_bytes))
 
 
-def decrypt_filename(enc_filename_bin: str, auth_token: 'AuthToken', cipher: str="aes", key_bytes: int=24) -> str:
+def decrypt_filename(enc_filename_bin: str, auth_token: 'AuthToken', cipher: str = "aes", key_bytes: int = 24) -> str:
     enc_filename = os.fsdecode(enc_filename_bin)  # type: str
 
     if not enc_filename.startswith(ECRYPTFS_FNEK_ENCRYPTED_FILENAME_PREFIX):
@@ -131,7 +131,7 @@ def decrypt_filename(enc_filename_bin: str, auth_token: 'AuthToken', cipher: str
 
         try:
             _, filename = res.rsplit(b'\0', 1)
-        except ValueError as err:
+        except ValueError:
             print()
             print("error: failure to split: '{}'".format(res))
             print("  input:", enc_filename)
@@ -186,7 +186,7 @@ def generate_filename_suffix(padded_filename) -> bytes:
         raise Exception("filename to long")
 
 
-def encrypt_filename(filename: str, auth_token: 'AuthToken', cipher: str="aes", key_bytes: int=24) -> str:
+def encrypt_filename(filename: str, auth_token: 'AuthToken', cipher: str = "aes", key_bytes: int = 24) -> str:
     filename_bin: bytes = os.fsencode(filename)
 
     cipher_proc = make_cipher_from_desc(auth_token, cipher, key_bytes)

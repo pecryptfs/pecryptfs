@@ -21,7 +21,7 @@ import os
 
 class AuthToken:
 
-    def __init__(self, password: str, salt: str="0011223344556677") -> None:
+    def __init__(self, password: str, salt: str = "0011223344556677") -> None:
         self.password_text = password
         self.password_bin = os.fsencode(password)
 

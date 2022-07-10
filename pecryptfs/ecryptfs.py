@@ -68,7 +68,7 @@ def generate_encrypted_file(auth_token: 'AuthToken', cipher: str, key_bytes: str
     return data
 
 
-def encrypt_filename_ecryptfs(filename: str, auth_token: 'AuthToken', cipher: str="aes", key_bytes: int=24) -> str:
+def encrypt_filename_ecryptfs(filename: str, auth_token: 'AuthToken', cipher: str = "aes", key_bytes: int = 24) -> str:
     """Encrypt the given filename using native ecryptfs"""
 
     filename = os.fsdecode(filename)
@@ -114,7 +114,7 @@ def encrypt_filename_ecryptfs(filename: str, auth_token: 'AuthToken', cipher: st
 
 
 def decrypt_filename_ecryptfs(enc_filename_bin: str, auth_token: 'AuthToken',
-                              cipher: str="aes", key_bytes: int=24) -> str:
+                              cipher: str = "aes", key_bytes: int = 24) -> str:
     """Decrypt the given filename using native ecryptfs"""
 
     enc_filename = os.fsdecode(enc_filename_bin)
