@@ -65,7 +65,7 @@ def main() -> None:
     args = parse_args()
 
     if args.move and not (args.encrypt or args.decrypt):
-        raise Exception("--move requires explicit --encrypt or --decrypt")
+        raise RuntimeError("--move requires explicit --encrypt or --decrypt")
 
     if args.password is None:
         password = getpass.getpass()

@@ -65,7 +65,7 @@ def make_cipher(auth_token: AuthToken, tag: int, key_bytes: int) -> Cipher:
         # RFC2440_CIPHER_TWOFISH = 0x0a
         # RFC2440_CIPHER_CAST_6 = 0x0b
         # RFC2440_CIPHER_RSA = 0x01
-        raise Exception("unknown cipher tag: {}".format(tag))
+        raise ValueError("unknown cipher tag: {}".format(tag))
 
 
 def make_cipher_from_desc(auth_token: AuthToken, cipher: str, key_bytes: int) -> Cipher:
@@ -84,7 +84,7 @@ def make_cipher_from_desc(auth_token: AuthToken, cipher: str, key_bytes: int) ->
         # RFC2440_CIPHER_TWOFISH = 0x0a
         # RFC2440_CIPHER_CAST_6 = 0x0b
         # RFC2440_CIPHER_RSA = 0x01
-        raise Exception("unknown cipher: {}:{}".format(cipher, key_bytes))
+        raise ValueError("unknown cipher: {}:{}".format(cipher, key_bytes))
 
 
 def get_cipher_tag(cipher: str, key_bytes: int) -> int:
@@ -105,7 +105,7 @@ def get_cipher_tag(cipher: str, key_bytes: int) -> int:
     # elif cipher == "cast6":
     #     RFC2440_CIPHER_CAST_6
     else:
-        raise Exception("unknown cipher '{}:{}'".format(cipher, key_bytes))
+        raise ValueError("unknown cipher '{}:{}'".format(cipher, key_bytes))
 
 
 def decrypt_filename(enc_filename_bin: str, auth_token: AuthToken, cipher: str = "aes", key_bytes: int = 24) -> str:
@@ -123,7 +123,7 @@ def decrypt_filename(enc_filename_bin: str, auth_token: AuthToken, cipher: str =
 
         signature = data[2:10]
         if signature.hex() != auth_token.signature_text:
-            raise Exception("signature mismatch, key not suited for filename")
+            raise ValueError("signature mismatch, key not suited for filename")
 
         cipher_proc = make_cipher(auth_token, data[10], key_bytes)
 
@@ -184,7 +184,7 @@ def generate_filename_suffix(padded_filename: bytes) -> bytes:
     elif len(padded_filename) == 160:
         return b""
     else:
-        raise Exception("filename to long")
+        raise ValueError("filename to long")
 
 
 def encrypt_filename(filename: str, auth_token: AuthToken, cipher: str = "aes", key_bytes: int = 24) -> str:

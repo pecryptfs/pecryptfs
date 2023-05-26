@@ -46,7 +46,7 @@ def make_cipher_from_desc2(key: bytes, cipher: str, key_bytes: int, iv: bytes) -
         # RFC2440_CIPHER_TWOFISH = 0x0a
         # RFC2440_CIPHER_CAST_6 = 0x0b
         # RFC2440_CIPHER_RSA = 0x01
-        raise Exception("unknown cipher: {}:{}".format(cipher, key_bytes))
+        raise ValueError("unknown cipher: {}:{}".format(cipher, key_bytes))
 
 
 class File:
@@ -91,10 +91,10 @@ class File:
 
         # check that the file is a proper eCryptfs file
         if self.marker1 != self.marker2 ^ MAGIC_ECRYPTFS_MARKER:
-            raise Exception("marker missmatch, not a eCryptfs encrypted file")
+            raise RuntimeError("marker missmatch, not a eCryptfs encrypted file")
 
         if self.salt != self.auth_token.salt_bin:
-            raise Exception("salt of file and auth_token missmatch")
+            raise RuntimeError("salt of file and auth_token missmatch")
 
         # calculate keys
         # cipher = AES.new(self.auth_token.session_key[0:key_bytes], AES.MODE_ECB)
