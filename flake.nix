@@ -2,7 +2,7 @@
   description = "Somewhat Python incomplete reimplementation of eCryptfs";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-22.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.05";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
@@ -12,15 +12,20 @@
         pkgs = nixpkgs.legacyPackages.${system};
         pythonPackages = pkgs.python310Packages;
       in rec {
-        packages = flake-utils.lib.flattenTree rec {
+        packages = rec {
+          default = pecryptfs;
+
           pecryptfs = pythonPackages.buildPythonPackage rec {
             pname = "pecryptfs";
             version = "0.1.0";
+
             src = nixpkgs.lib.cleanSource ./.;
+
             propagatedBuildInputs = with pythonPackages; [
               pycrypto
             ];
-            checkInputs = (with pkgs; [
+
+            nativeCheckInputs = (with pkgs; [
               pyright
             ]) ++ (with pythonPackages; [
               flake8
@@ -28,6 +33,7 @@
               pylint
               types-setuptools
             ]);
+
             checkPhase = ''
               runHook preCheck
               flake8 pecryptfs tests
@@ -38,7 +44,6 @@
               runHook postCheck
             '';
           };
-          default = pecryptfs;
         };
       }
     );
